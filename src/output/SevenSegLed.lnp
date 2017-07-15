@@ -1,0 +1,12 @@
+".\output\main.obj",
+".\output\seg.obj",
+".\output\timer.obj",
+".\output\Key.obj",
+".\output\DS1302.obj",
+".\output\buzzer.obj",
+".\output\ds18b20.obj",
+".\output\delay.obj",
+".\output\ExInterrupt.obj",
+".\output\PWM_LED.obj" 
+TO ".\output\SevenSegLed" 
+PRINT(".\output\SevenSegLed.m51") RAMSIZE(256) 

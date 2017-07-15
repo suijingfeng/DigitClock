@@ -1,0 +1,33 @@
+C51 COMPILER V8.02   EXINTERRUPT                                                           03/18/2013 22:04:34 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE EXINTERRUPT
+OBJECT MODULE PLACED IN .\output\ExInterrupt.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\ExInterrupt.c BROWSE DEBUG OBJECTEXTEND PRINT(.\ExInterrupt.lst) OBJECT
+                    -(.\output\ExInterrupt.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          
+   3          void Ex0Init()
+   4          {
+   5   1              EX0=1;
+   6   1              IT0=1;//¸º±ßÔµ´¥·¢
+   7   1      }
+   8          
+   9          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =      5    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,83 @@
+C51 COMPILER V7.10   PWM_LED                                                               02/18/2013 22:09:53 PAGE 1   
+
+
+C51 COMPILER V7.10, COMPILATION OF MODULE PWM_LED
+OBJECT MODULE PLACED IN .\output\PWM_LED.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\PWM_LED.c BROWSE DEBUG OBJECTEXTEND PRINT(.\PWM_LED.lst) OBJECT(.\outpu
+                    -t\PWM_LED.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include"timer.h" 
+   3          #define PWM_TIME_MAX 99
+   4          #define PWM_TIME_MIN 0
+   5          
+   6          #define LED     P1
+   7          #define LEDON()         LED=0x00
+   8          #define LEDOFF()        LED=0xff
+   9          
+  10          unsigned char LED_TimeCounter=0;
+  11          unsigned char PWM_TimeCounter=0;
+  12          unsigned char TimeCounter=0;
+  13          char direction=0;//can not use bit why?
+  14          
+  15          void LEDisplay()
+  16          {
+  17   1              if(SystemTime1ms)
+  18   1              {
+  19   2                      SystemTime1ms=0;
+  20   2                      
+  21   2                      if(++TimeCounter>=100)
+  22   2                      {
+  23   3                              TimeCounter=0;
+  24   3                              
+  25   3                              if(direction)
+  26   3                              {
+  27   4                                      PWM_TimeCounter++;
+  28   4                                      if(PWM_TimeCounter>=PWM_TIME_MAX)
+  29   4                                      {
+  30   5                                              PWM_TimeCounter=PWM_TIME_MAX;
+  31   5                                              direction=0;    
+  32   5                                      }       
+  33   4                              }
+  34   3      
+  35   3                              else
+  36   3                              {
+  37   4                                      PWM_TimeCounter--;
+  38   4                                      if(PWM_TimeCounter<=0)
+  39   4                                      {
+  40   5                                              PWM_TimeCounter=0;
+  41   5                                              direction=1;
+  42   5                                      }
+  43   4                              }
+  44   3                              LED_TimeCounter=PWM_TimeCounter;
+  45   3                       }
+  46   2      
+  47   2                      if(LED_TimeCounter>0)
+  48   2                      {       
+  49   3                              LEDON();
+  50   3                              LED_TimeCounter--;
+  51   3                      }
+  52   2                      else
+  53   2                      {
+  54   3                              LEDOFF();
+C51 COMPILER V7.10   PWM_LED                                                               02/18/2013 22:09:53 PAGE 2   
+
+  55   3                      }                       
+  56   2      }                       
+  57   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     72    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      4    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

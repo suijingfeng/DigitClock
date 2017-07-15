@@ -1,0 +1,173 @@
+C51 COMPILER V8.02   DS1302                                                                05/10/2013 16:00:17 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE DS1302
+OBJECT MODULE PLACED IN .\output\DS1302.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\DS1302.c BROWSE DEBUG OBJECTEXTEND PRINT(.\DS1302.lst) OBJECT(.\output\
+                    -DS1302.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include"MacroAndConst.h"
+   3          #include"buzzer.h"
+   4          #include"intrins.h"
+   5          #include"delay.h"
+   6          //#include"SEG.h"
+   7          /*
+   8          sbit DS1302_SCLK=P0^0;
+   9          sbit DS1302_IO=P0^2;
+  10          sbit DS1302_RST=P0^1;
+  11          */
+  12          sbit DS1302_SCLK=P2^4;
+  13          sbit DS1302_IO=P2^3;
+  14          sbit DS1302_RST=P2^2;
+  15          
+  16          #define DS1302_SECOND_W 0x80
+  17          #define DS1302_MINUTE_W 0x82
+  18          #define DS1302_HOUR_W   0x84
+  19          #define DS1302_DATE_W   0x86
+  20          #define DS1302_MONTH_W  0x88
+  21          #define DS1302_WEEK_W   0x8a
+  22          #define DS1302_YEAR_W   0x8c
+  23          
+  24          #define DS1302_SECOND_R 0x81
+  25          #define DS1302_MINUTE_R 0x83
+  26          #define DS1302_HOUR_R   0x85
+  27          #define DS1302_DATE_R   0x87
+  28          #define DS1302_MONTH_R  0x89
+  29          #define DS1302_WEEK_R   0x8b
+  30          #define DS1302_YEAR_R   0x8d
+  31          
+  32          struct
+  33          {
+  34                  unsigned char Second;
+  35                  unsigned char Minute;
+  36                  unsigned char Hour;
+  37                  unsigned char Date;
+  38                  unsigned char Month;
+  39                  unsigned char Week;
+  40                  unsigned char Year; 
+  41          }CurrentTime;
+  42          
+  43          static void DS1302Write(uchar content)
+  44          {
+  45   1              uchar i;
+  46   1              for(i=8;i>0;i--)
+  47   1              {
+  48   2                      _nop_();_nop_();
+  49   2                      if(content&0x01)
+  50   2                      {
+  51   3                              DS1302_IO=1;    
+  52   3                      }
+  53   2                      else
+  54   2                      {
+C51 COMPILER V8.02   DS1302                                                                05/10/2013 16:00:17 PAGE 2   
+
+  55   3                              DS1302_IO=0;
+  56   3                      }
+  57   2                      content>>=1;
+  58   2      
+  59   2                      DS1302_SCLK=1;
+  60   2                      DS1302_SCLK=0;
+  61   2              }
+  62   1      }
+  63          
+  64          static uchar DS1302Read(void)
+  65          {
+  66   1              uchar i,ReadValue;
+  67   1              //DS1302_IO=1;
+  68   1              _nop_();_nop_();
+  69   1              for(i=8;i>0;i--)
+  70   1              {
+  71   2                      ReadValue>>=1;
+  72   2                      _nop_();_nop_();_nop_();_nop_();
+  73   2                      if(DS1302_IO==1)
+  74   2                      {
+  75   3                              ReadValue|=0x80;
+  76   3                      }
+  77   2                      else
+  78   2                      {
+  79   3                              ReadValue&=0x7f;
+  80   3                      }
+  81   2                      DS1302_SCLK=1;
+  82   2                      _nop_();_nop_();
+  83   2                      DS1302_SCLK=0;
+  84   2                      _nop_();_nop_();
+  85   2              }
+  86   1              return ReadValue;
+  87   1      }
+  88          
+  89          void DS1302WriteByte(uchar address,uchar content)
+  90          {
+  91   1              DS1302_RST=0;
+  92   1              DS1302_SCLK=0;
+  93   1              DS1302_RST=1;
+  94   1      
+  95   1              DS1302Write(address);
+  96   1              DS1302Write(content);
+  97   1      
+  98   1              DS1302_RST=0;
+  99   1              DS1302_SCLK=1;
+ 100   1      }
+ 101          
+ 102          unsigned char DS1302ReadByte(uchar address)
+ 103          {
+ 104   1              uchar ReadValue;
+ 105   1              DS1302_RST=0;
+ 106   1              DS1302_SCLK=0;
+ 107   1              DS1302_RST=1;
+ 108   1      
+ 109   1              DS1302Write(address);
+ 110   1              ReadValue=DS1302Read();
+ 111   1      
+ 112   1              DS1302_RST=0;
+ 113   1              DS1302_SCLK=1;
+ 114   1      
+ 115   1              return ReadValue;
+ 116   1      }
+C51 COMPILER V8.02   DS1302                                                                05/10/2013 16:00:17 PAGE 3   
+
+ 117          
+ 118          void DS1302_ClockInit()
+ 119          {
+ 120   1              if(DS1302ReadByte(0xc1)!=0xf2)//在没有电池的情况下，这句要
+ 121   1              {                                                               //注释掉，因为断电后无法初始化                          
+ 122   2                      DS1302WriteByte(0x8e,0x00);//这是我调试2小时的经验啊。sjff
+ 123   2                      DS1302WriteByte(DS1302_YEAR_W,0x13);
+ 124   2                      DS1302WriteByte(DS1302_MONTH_W,0x05);
+ 125   2                      DS1302WriteByte(DS1302_DATE_W,0x10);
+ 126   2                      DS1302WriteByte(DS1302_WEEK_W,0x04);
+ 127   2                      DS1302WriteByte(DS1302_HOUR_W,0x10);
+ 128   2                      DS1302WriteByte(DS1302_MINUTE_W,0x49);
+ 129   2                      DS1302WriteByte(DS1302_SECOND_W,0x00);
+ 130   2      
+ 131   2                      DS1302WriteByte(0x90,0xa5);
+ 132   2                      DS1302WriteByte(0xc0,0xf2);
+ 133   2                      DS1302WriteByte(0x8e,0x80);
+ 134   2              }
+ 135   1      }
+ 136          
+ 137          void DS1302_ClockUpdata()
+ 138          {
+ 139   1              CurrentTime.Second=DS1302ReadByte(DS1302_SECOND_R);
+ 140   1              CurrentTime.Minute=DS1302ReadByte(DS1302_MINUTE_R);
+ 141   1              CurrentTime.Hour=DS1302ReadByte(DS1302_HOUR_R);
+ 142   1              CurrentTime.Date=DS1302ReadByte(DS1302_DATE_R);
+ 143   1              CurrentTime.Month=DS1302ReadByte(DS1302_MONTH_R);
+ 144   1              CurrentTime.Year=DS1302ReadByte(DS1302_YEAR_R);
+ 145   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    220    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,1350 @@
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN .\output\Key.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\Key.c BROWSE DEBUG OBJECTEXTEND PRINT(.\output\Key.lst) OBJECT(.\output
+                    -\Key.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include"MacroAndConst.h"
+   3          #include"timer.h"
+   4          #include"seg.h"
+   5          #include"ds1302.h"
+   6          #include"buzzer.h"
+   7          #include"exinterrupt.h"
+   8          #include"ds18b20.h"
+   9          
+  10          
+  11          #define KEY_LONG_PERIOD 100
+  12          #define KEY_CONTINUE_PERIOD 25
+  13          
+  14          #define KEY_DOWN         0x80
+  15          #define KEY_LONG         0x40
+  16          #define KEY_CONTINUE 0x20
+  17          #define KEY_UP           0x10
+  18          
+  19          #define KEY_VALUE1       0x0e
+  20          #define KEY_VALUE2       0x0d
+  21          #define KEY_VALUE3  0x0b
+  22          #define KEY_VALUE4  0x07
+  23          #define KEY_NULL         0x0f
+  24          
+  25          #define KEY_STATE_INIT          0
+  26          #define KEY_STATE_WOBBLE        1
+  27          #define KEY_STATE_PRESS         2
+  28          #define KEY_STATE_LONG          3
+  29          #define KEY_STATE_CONTINUE      4
+  30          #define KEY_STATE_RELEASE       5
+  31          
+  32          sbit KEY1=P1^0;//调整
+  33          sbit KEY2=P1^1;//+
+  34          sbit KEY3=P1^2;//-
+  35          sbit KEY4=P1^3;//确定
+  36          
+  37          void KeyInit()
+  38          {
+  39   1              KEY1=1;                 
+  40   1              KEY2=1;
+  41   1              KEY3=1;
+  42   1              KEY4=1;
+  43   1      }
+  44          
+  45          static uchar KeyScan()
+  46          {
+  47   1              if(KEY1==0) return KEY_VALUE1;
+  48   1              if(KEY2==0) return KEY_VALUE2;
+  49   1              if(KEY3==0) return KEY_VALUE3;
+  50   1              if(KEY4==0) return KEY_VALUE4;
+  51   1              return KEY_NULL;
+  52   1      }
+  53          
+  54          void GetKeyValue(unsigned char* pKeyValue)
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 2   
+
+  55          {
+  56   1              static uchar KeyState=KEY_STATE_INIT;
+  57   1              static uchar KeyTimeCount=0;
+  58   1              static uchar LastKey=KEY_NULL;
+  59   1              
+  60   1              uchar KeyTemp=KEY_NULL;
+  61   1      
+  62   1              KeyTemp=KeyScan();
+  63   1      
+  64   1              switch(KeyState)
+  65   1              {
+  66   2                      case KEY_STATE_INIT:
+  67   2                      {
+  68   3                              if(KEY_NULL!=KeyTemp)
+  69   3                              {
+  70   4                                      KeyState=KEY_STATE_WOBBLE;
+  71   4                              }
+  72   3                      }break;
+  73   2      
+  74   2                      case KEY_STATE_WOBBLE:
+  75   2                      {
+  76   3                              if(KEY_NULL!=KeyTemp)
+  77   3                              {
+  78   4                                      KeyState=KEY_STATE_PRESS;
+  79   4                              }
+  80   3                              else
+  81   3                              {
+  82   4                                      KeyState=KEY_STATE_INIT;
+  83   4                              }
+  84   3                      }break;
+  85   2      
+  86   2                      case KEY_STATE_PRESS:
+  87   2                      {
+  88   3                              if(KEY_NULL!=KeyTemp)
+  89   3                              {
+  90   4                                      LastKey=KeyTemp;
+  91   4                                      KeyTemp|=KEY_DOWN;
+  92   4                                      KeyState=KEY_STATE_LONG;
+  93   4                              }
+  94   3                              else
+  95   3                              {
+  96   4                                      KeyState=KEY_STATE_INIT;
+  97   4                              }
+  98   3                      }break;
+  99   2      
+ 100   2                      case KEY_STATE_LONG:
+ 101   2                      {
+ 102   3                              if(KEY_NULL!=KeyTemp)
+ 103   3                              {
+ 104   4                                      if(++KeyTimeCount>KEY_LONG_PERIOD)
+ 105   4                                      {
+ 106   5                                              KeyTimeCount=0;
+ 107   5                                              KeyTemp|=KEY_LONG;
+ 108   5                                              KeyState=KEY_STATE_CONTINUE;
+ 109   5                                      }
+ 110   4                                      
+ 111   4                              }
+ 112   3                              else
+ 113   3                              {
+ 114   4                                      KeyState=KEY_STATE_RELEASE;
+ 115   4                              }
+ 116   3                      }break;
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 3   
+
+ 117   2      
+ 118   2              
+ 119   2                      case KEY_STATE_CONTINUE:
+ 120   2                      {
+ 121   3                              if(KEY_NULL!=KeyTemp)
+ 122   3                              {
+ 123   4                                      if(++KeyTimeCount>KEY_CONTINUE_PERIOD)
+ 124   4                                      {
+ 125   5                                              KeyTimeCount=0;
+ 126   5                                              KeyTemp|=KEY_CONTINUE;
+ 127   5                                      }
+ 128   4                              }
+ 129   3                              else
+ 130   3                              {
+ 131   4                                      KeyState=KEY_STATE_RELEASE;
+ 132   4                              }
+ 133   3                      }break;
+ 134   2      
+ 135   2                      case KEY_STATE_RELEASE:
+ 136   2                      {
+ 137   3                              LastKey|=KEY_UP;
+ 138   3                              KeyTemp=LastKey;
+ 139   3                              KeyState=KEY_STATE_INIT;
+ 140   3                      }break;
+ 141   2              
+ 142   2                      default:break;
+ 143   2              }
+ 144   1              *pKeyValue=KeyTemp;
+ 145   1      }
+ 146          
+ 147          void KeyMainLoop(void)
+ 148          {
+ 149   1              unsigned char KeyValue;
+ 150   1              unsigned char BufPosition=0;
+ 151   1      
+ 152   1              if(KeyScanFlag)
+ 153   1              {       
+ 154   2                      KeyScanFlag=0;
+ 155   2                      GetKeyValue(&KeyValue);//
+ 156   2                      
+ 157   2                      if((KeyValue&0xf0)==KEY_DOWN)
+ 158   2                      {
+ 159   3                              BuzzerFlag=1;   
+ 160   3                      }
+ 161   2      
+ 162   2                      if((KeyValue&0xf0)==KEY_UP)
+ 163   2                      {
+ 164   3                              BuzzerFlag=0;
+ 165   3                      }
+ 166   2      
+ 167   2                      if((KeyValue==(KEY_UP|KEY_VALUE2))&&(SetTimeFlag==0))
+ 168   2                      {
+ 169   3                              if(++IrKeyVal.SegPicture==5)//4代表着一共4幅画面
+ 170   3                              {
+ 171   4                                      IrKeyVal.SegPicture=0;
+ 172   4                              }               
+ 173   3                      }
+ 174   2      
+ 175   2                      if(KeyValue==(KEY_UP|KEY_VALUE3)&&(SetTimeFlag==0))
+ 176   2                      {
+ 177   3                              if(IrKeyVal.SegPicture==0)
+ 178   3                              {
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 4   
+
+ 179   4                                      IrKeyVal.SegPicture=4;
+ 180   4                              }
+ 181   3                              else
+ 182   3                              {
+ 183   4                                      IrKeyVal.SegPicture--;
+ 184   4                              }               
+ 185   3                      }
+ 186   2      
+ 187   2                      switch(IrKeyVal.SegPicture)//IrLowCmd=IrKeyValue
+ 188   2                      {
+ 189   3                              case 0://设置时、分、秒
+ 190   3                              {
+ 191   4                                      if(KeyValue==(KEY_UP|KEY_VALUE1))//设置 
+ 192   4                                      {
+ 193   5                                              SetTimeFlag=1;//Start Set Time Mode And 
+ 194   5                                                                        //Stop Read DS1302;
+ 195   5                                              SegJumpShowFlag=0;//停止闪烁，调整
+ 196   5      
+ 197   5                                              if(TimeBuf1[g_uBufPosition]==' ')//' '=空格；
+ 198   5                                              {
+ 199   6                                                      TimeBuf1[g_uBufPosition]=TimeBuf1[8];
+ 200   6                                                      TimeBuf1[8]=' ';
+ 201   6                                              }
+ 202   5                                              g_uBufPosition++;
+ 203   5                                              
+ 204   5                                              SegJumpShowFlag=1;//Seg start jumpshow
+ 205   5      
+ 206   5                                              if((g_uBufPosition==2)||(g_uBufPosition==5))
+ 207   5                                              {
+ 208   6                                                      g_uBufPosition++;
+ 209   6                                              }//DO NOT CHANGE BITS OF '-'
+ 210   5                              
+ 211   5                                              if(g_uBufPosition==8)
+ 212   5                                              {
+ 213   6                                                      g_uBufPosition=0;
+ 214   6                                              }
+ 215   5                                       }
+ 216   4      
+ 217   4                                      //
+ 218   4                                      if((KeyValue==(KEY_UP|KEY_VALUE2))&&(SetTimeFlag==1))   
+ 219   4                                      {
+ 220   5                                              SegJumpShowFlag=0;
+ 221   5                                              if(TimeBuf1[g_uBufPosition]==' ')
+ 222   5                                              {
+ 223   6                                                      TimeBuf1[g_uBufPosition]=TimeBuf1[8];
+ 224   6                                                      TimeBuf1[8]=' ';
+ 225   6                                              }//adjust
+ 226   5                              
+ 227   5                                              if(g_uBufPosition==0)
+ 228   5                                              {
+ 229   6                                                      if(TimeBuf1[0]==2)
+ 230   6                                                      {
+ 231   7                                                              TimeBuf1[0]=0;          
+ 232   7                                                      }
+ 233   6                                                      else
+ 234   6                                                      {
+ 235   7                                                              TimeBuf1[0]++;  
+ 236   7                                                      }       
+ 237   6                                              }
+ 238   5      
+ 239   5                                              else if(g_uBufPosition==1)
+ 240   5                                              {
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 5   
+
+ 241   6                                                      if(TimeBuf1[0]==2)
+ 242   6                                                      {
+ 243   7                                                              if(TimeBuf1[1]==3)
+ 244   7                                                              {
+ 245   8                                                                      TimeBuf1[1]=0;  
+ 246   8                                                              }
+ 247   7      
+ 248   7                                                              else
+ 249   7                                                              {
+ 250   8                                                                      TimeBuf1[1]++;  
+ 251   8                                                              }
+ 252   7                                                      }
+ 253   6                                                      
+ 254   6                                                      else if(TimeBuf1[1]==9)
+ 255   6                                                      {
+ 256   7                                                              TimeBuf1[1]=0;          
+ 257   7                                                      }
+ 258   6                                                      
+ 259   6                                                      else
+ 260   6                                                      {
+ 261   7                                                              TimeBuf1[1]++;  
+ 262   7                                                      }       
+ 263   6                                              }
+ 264   5      
+ 265   5                                              else if(g_uBufPosition==3)
+ 266   5                                              {
+ 267   6                                                      if(TimeBuf1[3]==5)
+ 268   6                                                      {
+ 269   7                                                              TimeBuf1[3]=0;  
+ 270   7                                                      }
+ 271   6                                                      else
+ 272   6                                                      {
+ 273   7                                                              TimeBuf1[3]++;
+ 274   7                                                      }       
+ 275   6                                              }
+ 276   5      
+ 277   5                                              else if(g_uBufPosition==4)
+ 278   5                                              {
+ 279   6                                                      if(TimeBuf1[4]==9)
+ 280   6                                                      {
+ 281   7                                                              TimeBuf1[4]=0;  
+ 282   7                                                      }
+ 283   6                                                      else
+ 284   6                                                      {
+ 285   7                                                              TimeBuf1[4]++;
+ 286   7                                                      }
+ 287   6                                              }
+ 288   5      
+ 289   5                                              else if(g_uBufPosition==6)
+ 290   5                                              {
+ 291   6                                                      if(TimeBuf1[6]==5)
+ 292   6                                                      {
+ 293   7                                                              TimeBuf1[6]=0;  
+ 294   7                                                      }
+ 295   6                                                      else
+ 296   6                                                      {
+ 297   7                                                              TimeBuf1[6]++;
+ 298   7                                                      }       
+ 299   6                                              }
+ 300   5      
+ 301   5                                              else //if(g_uBufPosition==7)
+ 302   5                                              {
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 6   
+
+ 303   6                                                      if(TimeBuf1[7]==9)
+ 304   6                                                      {
+ 305   7                                                              TimeBuf1[7]=0;  
+ 306   7                                                      }
+ 307   6                                                      else
+ 308   6                                                      {
+ 309   7                                                              TimeBuf1[7]++;
+ 310   7                                                      }
+ 311   6                                              }
+ 312   5                                              SegJumpShowFlag=1;
+ 313   5                                      }
+ 314   4      
+ 315   4      
+ 316   4                                      //
+ 317   4                                      if(KeyValue==(KEY_UP|KEY_VALUE3)&&(SetTimeFlag==1))
+ 318   4                                      {
+ 319   5                                              SegJumpShowFlag=0;
+ 320   5                                              if(TimeBuf1[g_uBufPosition]==' ')
+ 321   5                                              {
+ 322   6                                                      TimeBuf1[g_uBufPosition]=TimeBuf1[8];
+ 323   6                                                      TimeBuf1[8]=' ';
+ 324   6                                              }
+ 325   5      
+ 326   5                                              if(g_uBufPosition==0)
+ 327   5                                              {
+ 328   6                                                      if(TimeBuf1[0]==0)
+ 329   6                                                      {
+ 330   7                                                              TimeBuf1[0]=2;
+ 331   7                                                      }
+ 332   6                                                      else
+ 333   6                                                      {
+ 334   7                                                              TimeBuf1[0]--;
+ 335   7                                                      }
+ 336   6                                              }
+ 337   5                                              else if(g_uBufPosition==1)
+ 338   5                                              {
+ 339   6                                                      if(TimeBuf1[0]==2)
+ 340   6                                                      {
+ 341   7                                                              if(TimeBuf1[1]==0)
+ 342   7                                                              {
+ 343   8                                                                      TimeBuf1[1]=3;
+ 344   8                                                              }
+ 345   7                                                              else
+ 346   7                                                              {
+ 347   8                                                                      TimeBuf1[1]--;
+ 348   8                                                              }
+ 349   7                                                      }
+ 350   6                                                      else 
+ 351   6                                                      {
+ 352   7                                                              if(TimeBuf1[1]==0)
+ 353   7                                                              {
+ 354   8                                                                      TimeBuf1[1]=9;
+ 355   8                                                              }
+ 356   7                                                              else
+ 357   7                                                              {
+ 358   8                                                                      TimeBuf1[1]--;
+ 359   8                                                              }
+ 360   7                                                      }
+ 361   6                                              }
+ 362   5                                              else if(g_uBufPosition==3)
+ 363   5                                              {
+ 364   6                                                      if(TimeBuf1[3]==0)
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 7   
+
+ 365   6                                                      {
+ 366   7                                                              TimeBuf1[3]=5;
+ 367   7                                                      }
+ 368   6                                                      else
+ 369   6                                                      {
+ 370   7                                                              TimeBuf1[3]--;
+ 371   7                                                      }
+ 372   6                                              }
+ 373   5                                              else if(g_uBufPosition==4)
+ 374   5                                              {
+ 375   6                                                      if(TimeBuf1[4]==0)
+ 376   6                                                      {
+ 377   7                                                              TimeBuf1[4]=9;
+ 378   7                                                      }
+ 379   6                                                      else
+ 380   6                                                      {
+ 381   7                                                              TimeBuf1[4]--;
+ 382   7                                                      }
+ 383   6                                              }
+ 384   5                                              else if(g_uBufPosition==6)
+ 385   5                                              {
+ 386   6                                                      if(TimeBuf1[6]==0)
+ 387   6                                                      {
+ 388   7                                                              TimeBuf1[6]=5;
+ 389   7                                                      }
+ 390   6                                                      else
+ 391   6                                                      {
+ 392   7                                                              TimeBuf1[6]--;
+ 393   7                                                      }
+ 394   6                                              }
+ 395   5                                              else//if(g_uBufPosition==7)
+ 396   5                                              {
+ 397   6                                                      if(TimeBuf1[7]==0)
+ 398   6                                                      {
+ 399   7                                                              TimeBuf1[7]=9;
+ 400   7                                                      }
+ 401   6                                                      else
+ 402   6                                                      {
+ 403   7                                                              TimeBuf1[7]--;
+ 404   7                                                      }       
+ 405   6                                              }
+ 406   5                                              SegJumpShowFlag=1;
+ 407   5                                      }
+ 408   4      
+ 409   4      
+ 410   4                                      //确定
+ 411   4                                      if((KeyValue==(KEY_UP|KEY_VALUE4))&&(SetTimeFlag==1))
+ 412   4                                      {
+ 413   5                                              SegJumpShowFlag=0;
+ 414   5                                              if(TimeBuf1[g_uBufPosition]==' ')
+ 415   5                                              {
+ 416   6                                                      TimeBuf1[g_uBufPosition]=TimeBuf1[8];
+ 417   6                                                      TimeBuf1[8]=' ';
+ 418   6                                              }
+ 419   5      
+ 420   5                                              if((TimeBuf1[0]*10+TimeBuf1[1])<=23)
+ 421   5                                              {
+ 422   6                                                      DS1302_SetTime_HMS((TimeBuf1[0]<<4)|TimeBuf1[1],
+ 423   6                                                                                              (TimeBuf1[3]<<4)|TimeBuf1[4],
+ 424   6                                                                                              (TimeBuf1[6]<<4)|TimeBuf1[7]);
+ 425   6                                              }       //向ds1302写入所设的小时，分钟，秒
+ 426   5                                              
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 8   
+
+ 427   5                                              SetTimeFlag=0;
+ 428   5                                              //SegJumpShowFlag=1;结束了，数码管不用再蹦
+ 429   5                                      }
+ 430   4                              }break;
+ 431   3      
+ 432   3                              case 1://年、月、日     
+ 433   3                              {                                                          
+ 434   4                                      if(KeyValue==(KEY_UP|KEY_VALUE1))//设置 
+ 435   4                                      {
+ 436   5                                              SetTimeFlag=1;//Start Set Time Mode And 
+ 437   5                                                                        //Stop Read DS1302;
+ 438   5                                              SegJumpShowFlag=0;//停止闪烁，调整
+ 439   5      
+ 440   5                                              if(TimeBuf2[g_uBufPosition]==' ')//' '=空格；
+ 441   5                                              {
+ 442   6                                                      TimeBuf2[g_uBufPosition]=TimeBuf2[8];
+ 443   6                                                      TimeBuf2[8]=' ';
+ 444   6                                              }
+ 445   5                                              g_uBufPosition++;
+ 446   5                                              
+ 447   5                                              SegJumpShowFlag=1;//Seg start jumpshow
+ 448   5      
+ 449   5                                              if((g_uBufPosition==2)||(g_uBufPosition==5))
+ 450   5                                              {
+ 451   6                                                      g_uBufPosition++;
+ 452   6                                              }//DO NOT CHANGE BITS OF '-'
+ 453   5                              
+ 454   5                                              if(g_uBufPosition==8)
+ 455   5                                              {
+ 456   6                                                      g_uBufPosition=0;
+ 457   6                                              }
+ 458   5                                       }
+ 459   4      
+ 460   4                                      //+
+ 461   4                                      if((KeyValue==(KEY_UP|KEY_VALUE2))&&(SetTimeFlag==1))   
+ 462   4                                      {
+ 463   5                                              SegJumpShowFlag=0;
+ 464   5                                              if(TimeBuf2[g_uBufPosition]==' ')
+ 465   5                                              {
+ 466   6                                                      TimeBuf2[g_uBufPosition]=TimeBuf2[8];
+ 467   6                                                      TimeBuf2[8]=' ';
+ 468   6                                              }//adjust
+ 469   5                              
+ 470   5                                              if(g_uBufPosition==0)
+ 471   5                                              {
+ 472   6                                                      if(TimeBuf2[0]==9)
+ 473   6                                                      {
+ 474   7                                                              TimeBuf2[0]=0;  
+ 475   7                                                      }
+ 476   6                                                      else
+ 477   6                                                      {
+ 478   7                                                              TimeBuf2[0]++;  
+ 479   7                                                      }                                                       
+ 480   6                                              }
+ 481   5      
+ 482   5                                              else if(g_uBufPosition==1)
+ 483   5                                              {
+ 484   6                                                      if(TimeBuf2[1]==9)
+ 485   6                                                      {
+ 486   7                                                              TimeBuf2[1]=0;  
+ 487   7                                                      }
+ 488   6                                                      else
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 9   
+
+ 489   6                                                      {
+ 490   7                                                              TimeBuf2[1]++;  
+ 491   7                                                      }                                                       
+ 492   6                                              }
+ 493   5      
+ 494   5                                              else if(g_uBufPosition==3)
+ 495   5                                              {
+ 496   6                                                      if(TimeBuf2[3]==1)
+ 497   6                                                      {
+ 498   7                                                              TimeBuf2[3]=0;  
+ 499   7                                                      }
+ 500   6                                                      else
+ 501   6                                                      {
+ 502   7                                                              TimeBuf2[3]++;  
+ 503   7                                                      }                                               
+ 504   6                                              }
+ 505   5      
+ 506   5                                              else if(g_uBufPosition==4)
+ 507   5                                              {
+ 508   6                                                      if(TimeBuf2[3]==1)
+ 509   6                                                      {
+ 510   7                                                              if(TimeBuf2[4]>=2)
+ 511   7                                                              {
+ 512   8                                                                      TimeBuf2[4]=0;
+ 513   8                                                              }
+ 514   7                                                              else
+ 515   7                                                              {
+ 516   8                                                                      TimeBuf2[4]++;
+ 517   8                                                              }
+ 518   7                                                      }
+ 519   6                                                      else
+ 520   6                                                      {
+ 521   7                                                              if(TimeBuf2[4]>=9)
+ 522   7                                                              {
+ 523   8                                                                      TimeBuf2[4]=1;
+ 524   8                                                              }
+ 525   7                                                              else
+ 526   7                                                              {
+ 527   8                                                                      TimeBuf2[4]++;
+ 528   8                                                              }
+ 529   7                                                      }
+ 530   6                                              }
+ 531   5      
+ 532   5                                              else if(g_uBufPosition==6)
+ 533   5                                              {
+ 534   6                                                      if((TimeBuf2[3]==0)&&(TimeBuf2[4]==2))//2月
+ 535   6                                                      {
+ 536   7                                                              if(TimeBuf2[6]>=2)
+ 537   7                                                              {
+ 538   8                                                                      TimeBuf2[6]=0;
+ 539   8                                                              }
+ 540   7                                                              else
+ 541   7                                                              {
+ 542   8                                                                      TimeBuf2[6]++;
+ 543   8                                                              }               
+ 544   7                                                      }
+ 545   6                                                      else//非二月
+ 546   6                                                      {
+ 547   7                                                              if(TimeBuf2[6]>=3)
+ 548   7                                                              {
+ 549   8                                                                      TimeBuf2[6]=0;
+ 550   8                                                              }
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 10  
+
+ 551   7                                                              else
+ 552   7                                                              {
+ 553   8                                                                      TimeBuf2[6]++;
+ 554   8                                                              }               
+ 555   7                                                      }       
+ 556   6                                              }
+ 557   5                                              
+ 558   5                                              else //if(g_uBufPosition==7)
+ 559   5                                              {
+ 560   6                                                      if((TimeBuf2[3]==0)&&(TimeBuf2[4]==2))//2月     
+ 561   6                                                      {
+ 562   7                                                              if((((TimeBuf2[0]*10)+TimeBuf2[1])%4)==0)//闰年
+ 563   7                                                              {
+ 564   8                                                                      
+ 565   8                                                                      if(TimeBuf2[7]>=9)//29                                  
+ 566   8                                                                      {
+ 567   9                                                                              if(TimeBuf2[6]==0)
+ 568   9                                                                              {
+ 569  10                                                                                      TimeBuf2[7]=1;
+ 570  10                                                                              }
+ 571   9                                                                              else
+ 572   9                                                                              {
+ 573  10                                                                                      TimeBuf2[7]=0;  
+ 574  10                                                                              }
+ 575   9                                                                      }
+ 576   8                                                                      else
+ 577   8                                                                      {
+ 578   9                                                                              TimeBuf2[7]++;
+ 579   9                                                                      }
+ 580   8                                                              }
+ 581   7                                                              else //非闰年
+ 582   7                                                              {
+ 583   8                                                                      if(TimeBuf2[6]==2)
+ 584   8                                                                      {
+ 585   9                                                                              if(TimeBuf2[7]>=8)//28
+ 586   9                                                                              {
+ 587  10                                                                                      TimeBuf2[7]=0;
+ 588  10                                                                              }
+ 589   9                                                                              else
+ 590   9                                                                              {
+ 591  10                                                                                      TimeBuf2[7]++;
+ 592  10                                                                              }
+ 593   9                                                                      }
+ 594   8                                                                      else if(TimeBuf2[6]==1)
+ 595   8                                                                      {
+ 596   9                                                                              if(TimeBuf2[7]>=9)                                      
+ 597   9                                                                              {
+ 598  10                                                                                      TimeBuf2[7]=0;
+ 599  10                                                                              }
+ 600   9                                                                              else
+ 601   9                                                                              {
+ 602  10                                                                                      TimeBuf2[7]++;
+ 603  10                                                                              }       
+ 604   9                                                                      }
+ 605   8                                                                      else //if(TimeBuf2[6]==0)
+ 606   8                                                                      {
+ 607   9                                                                              if(TimeBuf2[7]>=9)                                      
+ 608   9                                                                              {
+ 609  10                                                                                      TimeBuf2[7]=1;
+ 610  10                                                                              }
+ 611   9                                                                              else
+ 612   9                                                                              {
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 11  
+
+ 613  10                                                                                      TimeBuf2[7]++;
+ 614  10                                                                              }       
+ 615   9                                                                      }
+ 616   8                                                              }               
+ 617   7                                                      }        
+ 618   6                                                      else if((TimeBuf2[3]==0)&&(
+ 619   6                                                                      (TimeBuf2[4]==1)||
+ 620   6                                                                      (TimeBuf2[4]==3)||
+ 621   6                                                                      (TimeBuf2[4]==5)||
+ 622   6                                                                      (TimeBuf2[4]==7)||
+ 623   6                                                                      (TimeBuf2[4]==8))||
+ 624   6                                                                      ((TimeBuf2[3]==1)&&
+ 625   6                                                                      ((TimeBuf2[4]==0)||
+ 626   6                                                                      (TimeBuf2[4]==2))))
+ 627   6                                                      {//1,3,5,7,8,10,12月有31天
+ 628   7                                                              if(TimeBuf2[6]==3)
+ 629   7                                                              {
+ 630   8                                                                      if(TimeBuf2[7]>=1)
+ 631   8                                                                      {
+ 632   9                                                                              TimeBuf2[7]=0;
+ 633   9                                                                      }
+ 634   8                                                                      else
+ 635   8                                                                      {
+ 636   9                                                                              TimeBuf2[7]++;
+ 637   9                                                                      }
+ 638   8                                                              }
+ 639   7      
+ 640   7                                                              else if(TimeBuf2[6]==0)
+ 641   7                                                              {
+ 642   8                                                                      if(TimeBuf2[7]>=9)
+ 643   8                                                                      {
+ 644   9                                                                              TimeBuf2[7]=1;
+ 645   9                                                                      }
+ 646   8                                                                      else
+ 647   8                                                                      {
+ 648   9                                                                              TimeBuf2[7]++;
+ 649   9                                                                      }       
+ 650   8                                                              }
+ 651   7      
+ 652   7                                                              else
+ 653   7                                                              {
+ 654   8                                                                      if(TimeBuf2[7]>=9)
+ 655   8                                                                      {
+ 656   9                                                                              TimeBuf2[7]=0;
+ 657   9                                                                      }
+ 658   8                                                                      else
+ 659   8                                                                      {
+ 660   9                                                                              TimeBuf2[7]++;
+ 661   9                                                                      }       
+ 662   8                                                              }
+ 663   7                                                      }
+ 664   6                                                      else//4,6,9,11月
+ 665   6                                                      {
+ 666   7                                                              if(TimeBuf2[6]==3)
+ 667   7                                                              {
+ 668   8                                                                      TimeBuf2[7]=0;//30天
+ 669   8                                                              }
+ 670   7      
+ 671   7                                                              else if(TimeBuf2[6]==0)
+ 672   7                                                              {
+ 673   8                                                                      if(TimeBuf2[7]>=9)
+ 674   8                                                                      {
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 12  
+
+ 675   9                                                                              TimeBuf2[7]=1;  
+ 676   9                                                                      }
+ 677   8                                                                      else
+ 678   8                                                                      {
+ 679   9                                                                              TimeBuf2[7]++;          
+ 680   9                                                                      }                       
+ 681   8                                                              }
+ 682   7                                                              else
+ 683   7                                                              {
+ 684   8                                                                      if(TimeBuf2[7]>=9)
+ 685   8                                                                      {
+ 686   9                                                                              TimeBuf2[7]=0;  
+ 687   9                                                                      }
+ 688   8                                                                      else
+ 689   8                                                                      {
+ 690   9                                                                              TimeBuf2[7]++;          
+ 691   9                                                                      }               
+ 692   8                                                              }               
+ 693   7                                                      }//这个else可以去掉，加到这里为了完整。 
+ 694   6                                              }
+ 695   5                                         SegJumpShowFlag=1;
+ 696   5                                      }       
+ 697   4                                      //-
+ 698   4                                      if(KeyValue==(KEY_UP|KEY_VALUE3)&&(SetTimeFlag==1))
+ 699   4                                      {
+ 700   5                                              SegJumpShowFlag=0;
+ 701   5                                              if(TimeBuf2[g_uBufPosition]==' ')
+ 702   5                                              {
+ 703   6                                                      TimeBuf2[g_uBufPosition]=TimeBuf2[8];
+ 704   6                                                      TimeBuf2[8]=' ';
+ 705   6                                              }
+ 706   5      
+ 707   5                                              if(g_uBufPosition==0)
+ 708   5                                              {
+ 709   6                                                      if(TimeBuf2[0]==0)
+ 710   6                                                      {
+ 711   7                                                              TimeBuf2[0]=9;  
+ 712   7                                                      }
+ 713   6                                                      else
+ 714   6                                                      {
+ 715   7                                                              TimeBuf2[0]--;  
+ 716   7                                                      }                                                       
+ 717   6                                              }
+ 718   5      
+ 719   5                                              else if(g_uBufPosition==1)
+ 720   5                                              {
+ 721   6                                                      if(TimeBuf2[1]==0)
+ 722   6                                                      {
+ 723   7                                                              TimeBuf2[1]=9;  
+ 724   7                                                      }
+ 725   6                                                      else
+ 726   6                                                      {
+ 727   7                                                              TimeBuf2[1]--;  
+ 728   7                                                      }                                                       
+ 729   6                                              }
+ 730   5      
+ 731   5                                              else if(g_uBufPosition==3)
+ 732   5                                              {
+ 733   6                                                      if(TimeBuf2[3]==0)
+ 734   6                                                      {
+ 735   7                                                              TimeBuf2[3]=1;  
+ 736   7                                                      }
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 13  
+
+ 737   6                                                      else
+ 738   6                                                      {
+ 739   7                                                              TimeBuf2[3]--;  
+ 740   7                                                      }                                               
+ 741   6                                              }
+ 742   5      
+ 743   5                                              else if(g_uBufPosition==4)
+ 744   5                                              {
+ 745   6                                                      if(TimeBuf2[3]==1)
+ 746   6                                                      {
+ 747   7                                                              if(TimeBuf2[4]==0)
+ 748   7                                                              {
+ 749   8                                                                      TimeBuf2[4]=2;
+ 750   8                                                              }
+ 751   7                                                              else
+ 752   7                                                              {
+ 753   8                                                                      TimeBuf2[4]--;
+ 754   8                                                              }
+ 755   7                                                      }
+ 756   6                                                      else
+ 757   6                                                      {
+ 758   7                                                              if(TimeBuf2[4]==1)
+ 759   7                                                              {
+ 760   8                                                                      TimeBuf2[4]=9;
+ 761   8                                                              }
+ 762   7                                                              else
+ 763   7                                                              {
+ 764   8                                                                      TimeBuf2[4]--;
+ 765   8                                                              }
+ 766   7                                                      }
+ 767   6                                              }
+ 768   5      
+ 769   5                                              else if(g_uBufPosition==6)
+ 770   5                                              {
+ 771   6                                                      if((TimeBuf2[3]==0)&&(TimeBuf2[4]==2))//2月
+ 772   6                                                      {
+ 773   7                                                              if(TimeBuf2[6]==0)
+ 774   7                                                              {
+ 775   8                                                                      TimeBuf2[6]=2;
+ 776   8                                                              }
+ 777   7                                                              else
+ 778   7                                                              {
+ 779   8                                                                      TimeBuf2[6]--;
+ 780   8                                                              }               
+ 781   7                                                      }
+ 782   6                                                      else//非二月
+ 783   6                                                      {
+ 784   7                                                              if(TimeBuf2[6]==0)
+ 785   7                                                              {
+ 786   8                                                                      TimeBuf2[6]=3;
+ 787   8                                                              }
+ 788   7                                                              else
+ 789   7                                                              {
+ 790   8                                                                      TimeBuf2[6]--;
+ 791   8                                                              }               
+ 792   7                                                      }       
+ 793   6                                              }
+ 794   5                                              
+ 795   5                                              else //if(g_uBufPosition==7)
+ 796   5                                              {
+ 797   6                                                      if((TimeBuf2[3]==0)&&(TimeBuf2[4]==2))//2月     
+ 798   6                                                      {
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 14  
+
+ 799   7                                                              if((((TimeBuf2[0]*10)+TimeBuf2[1])%4)==0)//闰年
+ 800   7                                                              {
+ 801   8                                                                      if(TimeBuf2[6]==0)
+ 802   8                                                                      {
+ 803   9                                                                              if(TimeBuf2[7]==1)//29                                  
+ 804   9                                                                              {
+ 805  10                                                                                      TimeBuf2[7]=9;
+ 806  10                                                                              }
+ 807   9                                                                              else
+ 808   9                                                                              {
+ 809  10                                                                                      TimeBuf2[7]--;
+ 810  10                                                                              }
+ 811   9                                                                      }
+ 812   8                                                                      else
+ 813   8                                                                      {
+ 814   9                                                                              if(TimeBuf2[7]==0)//29                                  
+ 815   9                                                                              {
+ 816  10                                                                                      TimeBuf2[7]=9;
+ 817  10                                                                              }
+ 818   9                                                                              else
+ 819   9                                                                              {
+ 820  10                                                                                      TimeBuf2[7]--;
+ 821  10                                                                              }
+ 822   9                                                                      }
+ 823   8                                                              }
+ 824   7                                                              else //非闰年
+ 825   7                                                              {
+ 826   8                                                                      if(TimeBuf2[6]==2)
+ 827   8                                                                      {
+ 828   9                                                                              if(TimeBuf2[7]==0)//28
+ 829   9                                                                              {
+ 830  10                                                                                      TimeBuf2[7]=8;
+ 831  10                                                                              }
+ 832   9                                                                              else
+ 833   9                                                                              {
+ 834  10                                                                                      TimeBuf2[7]--;
+ 835  10                                                                              }
+ 836   9                                                                      }
+ 837   8                                                                      
+ 838   8                                                                      else if(TimeBuf2[6]==0)
+ 839   8                                                                      {
+ 840   9                                                                              if(TimeBuf2[7]==1)                                      
+ 841   9                                                                              {
+ 842  10                                                                                      TimeBuf2[7]=9;
+ 843  10                                                                              }
+ 844   9                                                                              else
+ 845   9                                                                              {
+ 846  10                                                                                      TimeBuf2[7]--;
+ 847  10                                                                              }
+ 848   9                                                                      }
+ 849   8                                                                      else 
+ 850   8                                                                      {
+ 851   9                                                                              if(TimeBuf2[7]==0)                                      
+ 852   9                                                                              {
+ 853  10                                                                                      TimeBuf2[7]=9;
+ 854  10                                                                              }
+ 855   9                                                                              else
+ 856   9                                                                              {
+ 857  10                                                                                      TimeBuf2[7]--;
+ 858  10                                                                              }
+ 859   9                                                                      }
+ 860   8                                                              }               
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 15  
+
+ 861   7                                                      }        
+ 862   6                                                      else if((TimeBuf2[3]==0)&&(
+ 863   6                                                                      (TimeBuf2[4]==1)||
+ 864   6                                                                      (TimeBuf2[4]==3)||
+ 865   6                                                                      (TimeBuf2[4]==5)||
+ 866   6                                                                      (TimeBuf2[4]==7)||
+ 867   6                                                                      (TimeBuf2[4]==8))||
+ 868   6                                                                      ((TimeBuf2[3]==1)&&(TimeBuf2[4]==0))||
+ 869   6                                                                      ((TimeBuf2[3]==1)&&(TimeBuf2[4]==2)))
+ 870   6                                                      {//1,3,5,7,8,10,12月有31天
+ 871   7                                                              if(TimeBuf2[6]==3)
+ 872   7                                                              {
+ 873   8                                                                      if(TimeBuf2[7]==0)
+ 874   8                                                                      {
+ 875   9                                                                              TimeBuf2[7]=1;
+ 876   9                                                                      }
+ 877   8                                                                      else
+ 878   8                                                                      {
+ 879   9                                                                              TimeBuf2[7]--;
+ 880   9                                                                      }
+ 881   8                                                              }
+ 882   7                                                              else if(TimeBuf2[6]==0)
+ 883   7                                                              {
+ 884   8                                                                      if(TimeBuf2[7]==1)
+ 885   8                                                                      {
+ 886   9                                                                              TimeBuf2[7]=9;
+ 887   9                                                                      }
+ 888   8                                                                      else
+ 889   8                                                                      {
+ 890   9                                                                              TimeBuf2[7]--;
+ 891   9                                                                      }       
+ 892   8                                                              }
+ 893   7                                                              else
+ 894   7                                                              {
+ 895   8                                                                      if(TimeBuf2[7]==0)
+ 896   8                                                                      {
+ 897   9                                                                              TimeBuf2[7]=9;
+ 898   9                                                                      }
+ 899   8                                                                      else
+ 900   8                                                                      {
+ 901   9                                                                              TimeBuf2[7]--;
+ 902   9                                                                      }       
+ 903   8                                                              }
+ 904   7                                                              
+ 905   7                                                      }
+ 906   6                                                      else//4,6,9,11月
+ 907   6                                                      {
+ 908   7                                                              if(TimeBuf2[6]==3)
+ 909   7                                                              {
+ 910   8                                                                      TimeBuf2[7]=0;//30天
+ 911   8                                                              }
+ 912   7                                                              else if(TimeBuf2[6]==0)
+ 913   7                                                              {
+ 914   8                                                                      if(TimeBuf2[7]==1)
+ 915   8                                                                      {
+ 916   9                                                                              TimeBuf2[7]=9;  
+ 917   9                                                                      }
+ 918   8                                                                      else
+ 919   8                                                                      {
+ 920   9                                                                              TimeBuf2[7]--;          
+ 921   9                                                                      }               
+ 922   8                                                              }
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 16  
+
+ 923   7                                                              else
+ 924   7                                                              {
+ 925   8                                                                      if(TimeBuf2[7]==0)
+ 926   8                                                                      {
+ 927   9                                                                              TimeBuf2[7]=9;  
+ 928   9                                                                      }
+ 929   8                                                                      else
+ 930   8                                                                      {
+ 931   9                                                                              TimeBuf2[7]--;          
+ 932   9                                                                      }               
+ 933   8                                                              }       
+ 934   7                                                      }//这个else可以去掉，加到这里为了完整。
+ 935   6                                              }
+ 936   5                                              SegJumpShowFlag=1;
+ 937   5                                      }
+ 938   4                                      //确定
+ 939   4                                      if((KeyValue==(KEY_UP|KEY_VALUE4))&&(SetTimeFlag==1))
+ 940   4                                      {
+ 941   5                                              SegJumpShowFlag=0;
+ 942   5                                              if(TimeBuf2[g_uBufPosition]==' ')
+ 943   5                                              {
+ 944   6                                                      TimeBuf2[g_uBufPosition]=TimeBuf2[8];
+ 945   6                                                      TimeBuf2[8]=' ';
+ 946   6                                              }
+ 947   5                                              
+ 948   5      
+ 949   5                                              if(((TimeBuf2[3]*10+TimeBuf2[4])==1)||
+ 950   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==3)||
+ 951   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==5)||
+ 952   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==7)||
+ 953   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==8)||
+ 954   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==10)||
+ 955   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==12))
+ 956   5                                              {
+ 957   6                                                      if((TimeBuf2[6]*10+TimeBuf2[7])<=31)
+ 958   6                                                      {
+ 959   7                                                              DS1302_SetTime_YMD(
+ 960   7                                                              (TimeBuf2[0]<<4)|TimeBuf2[1],
+ 961   7                                                              (TimeBuf2[3]<<4)|TimeBuf2[4],
+ 962   7                                                              (TimeBuf2[6]<<4)|TimeBuf2[7]);  
+ 963   7                                                      }               
+ 964   6                                              }
+ 965   5      
+ 966   5                                              if(((TimeBuf2[3]*10+TimeBuf2[4])==4)||
+ 967   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==6)||
+ 968   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==9)||
+ 969   5                                                 ((TimeBuf2[3]*10+TimeBuf2[4])==11))
+ 970   5                                              {
+ 971   6                                                      if((TimeBuf2[6]*10+TimeBuf2[7])<=30)
+ 972   6                                                      {
+ 973   7                                                              DS1302_SetTime_YMD(
+ 974   7                                                              (TimeBuf2[0]<<4)|TimeBuf2[1],
+ 975   7                                                              (TimeBuf2[3]<<4)|TimeBuf2[4],
+ 976   7                                                              (TimeBuf2[6]<<4)|TimeBuf2[7]);  
+ 977   7                                                      }       
+ 978   6                                              }
+ 979   5      
+ 980   5                                              if((TimeBuf2[3]*10+TimeBuf2[4])==2)
+ 981   5                                              {
+ 982   6                                                      if((TimeBuf2[0]*10+TimeBuf2[1])%4==0)
+ 983   6                                                      {
+ 984   7                                                              if((TimeBuf2[6]*10+TimeBuf2[7])<=29)
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 17  
+
+ 985   7                                                              {       //向ds1302写入所设的年，月，日
+ 986   8                                                                      DS1302_SetTime_YMD(
+ 987   8                                                                      (TimeBuf2[0]<<4)|TimeBuf2[1],
+ 988   8                                                                      (TimeBuf2[3]<<4)|TimeBuf2[4],
+ 989   8                                                                      (TimeBuf2[6]<<4)|TimeBuf2[7]);          
+ 990   8                                                              }
+ 991   7                                                      }
+ 992   6                                                      else 
+ 993   6                                                      {
+ 994   7                                                              
+ 995   7                                                              if((TimeBuf2[6]*10+TimeBuf2[7])<=28)
+ 996   7                                                              {       //向ds1302写入所设的年，月，日
+ 997   8                                                                      DS1302_SetTime_YMD(
+ 998   8                                                                      (TimeBuf2[0]<<4)|TimeBuf2[1],
+ 999   8                                                                      (TimeBuf2[3]<<4)|TimeBuf2[4],
+1000   8                                                                      (TimeBuf2[6]<<4)|TimeBuf2[7]);          
+1001   8                                                              }                       
+1002   7                                                      }
+1003   6                                              }
+1004   5                                              SetTimeFlag=0;
+1005   5                                              //SegJumpShowFlag=1;结束了，数码管不用再蹦
+1006   5                                      }                               
+1007   4                              }break;
+1008   3      
+1009   3                              case 2:
+1010   3                              {
+1011   4                                      if(KeyValue==(KEY_UP|KEY_VALUE1))//设置 
+1012   4                                      {
+1013   5                                              SetTimeFlag=1;//Start Set Time Mode And 
+1014   5                                                                        //Stop Read DS1302;
+1015   5                                              SegJumpShowFlag=0;//停止闪烁，调整
+1016   5      
+1017   5                                              if(TimeBuf3[7]==' ')//' '=空格；
+1018   5                                              {
+1019   6                                                      TimeBuf3[7]=TimeBuf3[8];
+1020   6                                                      TimeBuf3[8]=' ';
+1021   6                                              }
+1022   5                                              
+1023   5                                              SegJumpShowFlag=1;//Seg start jumpshow
+1024   5                                       }
+1025   4      
+1026   4                                      if((KeyValue==(KEY_UP|KEY_VALUE2))&&(SetTimeFlag==1))   
+1027   4                                      {
+1028   5                                              SegJumpShowFlag=0;
+1029   5                                              if(TimeBuf3[7]==' ')
+1030   5                                              {
+1031   6                                                      TimeBuf3[7]=TimeBuf3[8];
+1032   6                                                      TimeBuf3[8]=' ';
+1033   6                                              }//adjust
+1034   5                                              if(++TimeBuf3[7]==8)
+1035   5                                              {
+1036   6                                                      TimeBuf3[7]=1;
+1037   6                                              }
+1038   5                                              SegJumpShowFlag=1;
+1039   5                                      }
+1040   4      
+1041   4                                      if(KeyValue==(KEY_UP|KEY_VALUE3)&&(SetTimeFlag==1))
+1042   4                                      {
+1043   5                                              SegJumpShowFlag=0;
+1044   5                                              if(TimeBuf3[7]==' ')
+1045   5                                              {
+1046   6                                                      TimeBuf3[7]=TimeBuf3[8];
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 18  
+
+1047   6                                                      TimeBuf3[8]=' ';
+1048   6                                              }
+1049   5                                              if(--TimeBuf3[7]==0)
+1050   5                                              {
+1051   6                                                      TimeBuf3[7]=7;
+1052   6                                              }
+1053   5                                              SegJumpShowFlag=1;
+1054   5                                      }
+1055   4      
+1056   4      
+1057   4                                      //确定
+1058   4                                      if((KeyValue==(KEY_UP|KEY_VALUE4))&&(SetTimeFlag==1))
+1059   4                                      {
+1060   5                                              SegJumpShowFlag=0;
+1061   5                                              if(TimeBuf3[7]==' ')
+1062   5                                              {
+1063   6                                                      TimeBuf3[7]=TimeBuf3[8];
+1064   6                                                      TimeBuf3[8]=' ';
+1065   6                                              }
+1066   5      
+1067   5                                              if((TimeBuf3[7]<=7)&&(TimeBuf3[7]>=1))
+1068   5                                              {
+1069   6                                                      DS1302_SetTime_WEEK(TimeBuf3[7]);
+1070   6                                              }       //向ds1302写入所设的星期
+1071   5                                              
+1072   5                                              SetTimeFlag=0;
+1073   5                                              //SegJumpShowFlag=1;结束了，数码管不用再蹦
+1074   5                                      }                                               
+1075   4                              }       
+1076   3                              case 3://temperature
+1077   3                              {
+1078   4                                      if(KeyValue==(KEY_UP|KEY_VALUE1))//设置 
+1079   4                                      {
+1080   5                      
+1081   5                                              SetTemperatureFlag=1;//Start Set Temperature Mode 
+1082   5                                                                                      //And Stop Read DS18B02;
+1083   5                                              SegJumpShowFlag=0;//停止闪烁，调整
+1084   5                                              
+1085   5                                              if(CurrentTemperature[BufPosition]==' ')//' '=空格；
+1086   5                                              {
+1087   6                                                      CurrentTemperature[BufPosition]=CurrentTemperature[8];
+1088   6                                                      CurrentTemperature[8]=' ';
+1089   6                                              }
+1090   5              
+1091   5                                              SegJumpShowFlag=1;// Seg start jumpshow
+1092   5                                              
+1093   5                                              BufPosition++;
+1094   5                                              
+1095   5                                              if((BufPosition<=1)&&(BufPosition>=5))
+1096   5                                              {
+1097   6                                                      BufPosition=1;
+1098   6                                              }
+1099   5                                      }                
+1100   4                                      //+
+1101   4                                      if((KeyValue==(KEY_UP|KEY_VALUE2))&&(SetTemperatureFlag==1))    
+1102   4                                      {
+1103   5                                              SegJumpShowFlag=0;
+1104   5                                              if(CurrentTemperature[BufPosition]==' ')
+1105   5                                              {
+1106   6                                                      CurrentTemperature[BufPosition]=CurrentTemperature[8];
+1107   6                                                      CurrentTemperature[8]=' ';
+1108   6                                              }                                       //adjust
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 19  
+
+1109   5                                              
+1110   5                                              if(BufPosition==2)
+1111   5                                              {
+1112   6                                                      if(CurrentTemperature[2]==29)
+1113   6                                                      {
+1114   7                                                              CurrentTemperature[2]=20;
+1115   7                                                      }
+1116   6                                                      else
+1117   6                                                      {
+1118   7                                                              CurrentTemperature[2]++;
+1119   7                                                      }               
+1120   6                                              }
+1121   5                                              else
+1122   5                                              {
+1123   6                                                      if((CurrentTemperature[BufPosition]==9))
+1124   6                                                      {
+1125   7                                                              CurrentTemperature[BufPosition]=0;      
+1126   7                                                      }
+1127   6                                                      else
+1128   6                                                      {
+1129   7                                                              CurrentTemperature[BufPosition]++;
+1130   7                                                      }       
+1131   6                                              }
+1132   5                                              SegJumpShowFlag=1;
+1133   5                                      }
+1134   4                                      //-
+1135   4                                      if((KeyValue==(KEY_UP|KEY_VALUE3))&&(SetTemperatureFlag==1))    
+1136   4                                      {
+1137   5                                              SegJumpShowFlag=0;
+1138   5                                              if(CurrentTemperature[BufPosition]==' ')
+1139   5                                              {
+1140   6                                                      CurrentTemperature[BufPosition]=CurrentTemperature[8];
+1141   6                                                      CurrentTemperature[8]=' ';
+1142   6                                              }                                       //adjust
+1143   5                                              
+1144   5                                              if(BufPosition==2)
+1145   5                                              {
+1146   6                                                      if(CurrentTemperature[2]==20)
+1147   6                                                      {
+1148   7                                                              CurrentTemperature[2]=29;
+1149   7                                                      }
+1150   6                                                      else
+1151   6                                                      {
+1152   7                                                              CurrentTemperature[2]--;
+1153   7                                                      }               
+1154   6                                              }
+1155   5                                              else
+1156   5                                              {
+1157   6                                                      if((CurrentTemperature[BufPosition]==0))
+1158   6                                                      {
+1159   7                                                              CurrentTemperature[BufPosition]=9;      
+1160   7                                                      }
+1161   6                                                      else
+1162   6                                                      {
+1163   7                                                              CurrentTemperature[BufPosition]--;
+1164   7                                                      }       
+1165   6                                              }
+1166   5                                              SegJumpShowFlag=1;
+1167   5                                      }
+1168   4                              }break;
+1169   3                              if((KeyValue==(KEY_UP|KEY_VALUE4))&&(SetTimeFlag==1))
+1170   3                              {
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 20  
+
+1171   4                                      SegJumpShowFlag=0;
+1172   4                                      if(TimeBuf3[7]==' ')
+1173   4                                      {
+1174   5                                              TimeBuf3[7]=TimeBuf3[8];
+1175   5                                              TimeBuf3[8]=' ';
+1176   5                                      }
+1177   4      
+1178   4                                      //to do 
+1179   4                                      //向ds18b20写入所设的高温
+1180   4                                              
+1181   4                                      SetTimeFlag=0;
+1182   4                                      //SegJumpShowFlag=1;结束了，数码管不用再蹦
+1183   4                              }
+1184   3      
+1185   3      /*                      case 4:
+1186   3                              {
+1187   3                              
+1188   3                              } break;
+1189   3      
+1190   3                              case 5:
+1191   3                              {
+1192   3                                      
+1193   3                              }break;
+1194   3                              default:break;
+1195   3                      }
+1196   3      /*
+1197   3                      if(KeyValue==(KEY_UP|KEY_VALUE1)&&((IrKeyVal.SegPicture==0)||(IrKeyVal.SegPicture==1)||(IrKeyVal.SegPict
+             -ure==3)))//设置       
+1198   3                      {
+1199   3                      
+1200   3                              SetTimeFlag=1;//Start Set Time Mode And Stop Read DS1302;
+1201   3                              SegJumpShowFlag=0;//停止闪烁，调整
+1202   3      
+1203   3                              if(LedDisBuffer[BufPos]==' ')//' '=空格；
+1204   3                              {
+1205   3                                      LedDisBuffer[BufPos]=LedDisBuffer[8];
+1206   3                                      LedDisBuffer[8]=' ';
+1207   3                              }
+1208   3                              BufPos++;
+1209   3                              SegJumpShowFlag=1;// Seg start jumpshow
+1210   3      
+1211   3                              if((BufPos==2)||(BufPos==5))
+1212   3                              {
+1213   3                                      BufPos++;
+1214   3                              }//do not change '-'
+1215   3                              
+1216   3                              if(BufPos==8)
+1217   3                              {
+1218   3                                      BufPos=0;
+1219   3                              }
+1220   3                      }
+1221   3                      
+1222   3                              
+1223   3                      if((KeyValue==(KEY_UP|KEY_VALUE2))&&(SetTimeFlag==1))   
+1224   3                      {
+1225   3                              SegJumpShowFlag=0;
+1226   3                              if(LedDisBuffer[BufPos]==' ')
+1227   3                              {
+1228   3                                      LedDisBuffer[BufPos]=LedDisBuffer[8];
+1229   3                                      LedDisBuffer[8]=' ';
+1230   3                              }                                       //adjust
+1231   3                              
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 21  
+
+1232   3                              if(++LedDisBuffer[BufPos]==10)//LedDisBuffer[BufPos]++;then if()
+1233   3                              {
+1234   3                                      LedDisBuffer[BufPos]=0; 
+1235   3                              }
+1236   3                              SegJumpShowFlag=1;
+1237   3                      }
+1238   3                      //显示下组画面
+1239   3                      
+1240   3      
+1241   3                      if((KeyValue==(KEY_UP|KEY_VALUE4))&&(SetTimeFlag==1))
+1242   3                      {
+1243   3                              SegJumpShowFlag=0;
+1244   3                              if(LedDisBuffer[BufPos]==' ')
+1245   3                              {
+1246   3                                      LedDisBuffer[BufPos]=LedDisBuffer[8];
+1247   3                                      LedDisBuffer[8]=' ';
+1248   3                              }
+1249   3      
+1250   3                              if((IrKeyVal.SegPicture==0)&&(LedDisBuffer[0]<2)&&(LedDisBuffer[3]<=6)&&(LedDisBuffer[6]<=6)||((LedDisB
+             -uffer[0]==2)&&(LedDisBuffer[1]<=3)))//犯错处理
+1251   3                              {
+1252   3                                      DS1302_SetTime_HMS((LedDisBuffer[0]<<4)|LedDisBuffer[1],(LedDisBuffer[3]<<4)|LedDisBuffer[4],(LedDisBu
+             -ffer[6]<<4)|LedDisBuffer[7]);//向ds1302写入所设的小时，分钟，秒
+1253   3                              }
+1254   3      
+1255   3                              if((IrKeyVal.SegPicture==1)&&(LedDisBuffer[6]<=3)&&((LedDisBuffer[3]==0)||((LedDisBuffer[3]==1)&&(LedDi
+             -sBuffer[4]<=2))))
+1256   3                              {
+1257   3                                      DS1302_SetTime_YMD((LedDisBuffer[0]<<4)|LedDisBuffer[1],(LedDisBuffer[3]<<4)|LedDisBuffer[4],(LedDisBu
+             -ffer[6]<<4)|LedDisBuffer[7]);//向ds1302写入所设的年，月，日   
+1258   3                              }
+1259   3      
+1260   3                              if((IrKeyVal.SegPicture==3)&&(LedDisBuffer[0]<2)&&(LedDisBuffer[3]<=6)&&(LedDisBuffer[6]<=6)||((LedDisB
+             -uffer[0]==2)&&(LedDisBuffer[1]<=3)))//犯错处理
+1261   3                              {
+1262   3                                      BuzzerTime[0]=LedDisBuffer[0];//闹钟响的小时
+1263   3                                      BuzzerTime[1]=LedDisBuffer[1];
+1264   3      
+1265   3                                      BuzzerTime[2]=LedDisBuffer[3];//闹钟响的分钟
+1266   3      
+1267   3                                      BuzzerTime[3]=LedDisBuffer[4];
+1268   3                                      
+1269   3                                      BuzzerTime[5]=LedDisBuffer[6];//闹钟要响的时间
+1270   3                                      BuzzerTime[6]=LedDisBuffer[7];//单位:分钟
+1271   3                              }
+1272   3      
+1273   3                              //SegJumpShowFlag=1;
+1274   3                              SetTimeFlag=0; */
+1275   3                      }
+1276   2                              
+1277   2              }       
+1278   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2229    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+C51 COMPILER V9.00   KEY                                                                   07/23/2014 19:54:00 PAGE 22  
+
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,174 @@
+C51 COMPILER V9.00   DS18B20                                                               07/23/2014 19:54:01 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE DS18B20
+OBJECT MODULE PLACED IN .\output\ds18b20.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\ds18b20.c BROWSE DEBUG OBJECTEXTEND PRINT(.\output\ds18b20.lst) OBJECT(
+                    -.\output\ds18b20.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include<intrins.h>
+   3          //#include<string.h>//
+   4          #include"MacroAndConst.h"
+   5          #include"delay.h"
+   6          
+   7          sbit DS18B20_DQ=P3^3;
+   8          
+   9          unsigned char CurrentTemperature[9]={' ','3','0','0','0',' ','.',12,' '}; 
+  10          
+  11          bit SetTemperatureFlag=0;
+  12          
+  13          static void DS18B20_Initial()
+  14          {
+  15   1              DS18B20_DQ=1;
+  16   1              _nop_();
+  17   1              DS18B20_DQ=0;
+  18   1      
+  19   1              DelayUs(80);//>480,<960us //491us
+  20   1              DS18B20_DQ=1;
+  21   1              DelayUs(14);//59us
+  22   1      }
+  23          
+  24          static void DS18B20_WriteOneByte(uchar content)
+  25          {
+  26   1              uchar i=0;
+  27   1              EA=0;//
+  28   1              for(i=0;i<8;i++)        
+  29   1              {
+  30   2                      if((content&0x01)==0)
+  31   2                      {
+  32   3                              DS18B20_DQ=1;//写完之后，一定要释放总线
+  33   3                              _nop_();_nop_();
+  34   3                              DS18B20_DQ=0;
+  35   3                              DelayUs(8);//59us//就错在这一步
+  36   3                              DS18B20_DQ=1;
+  37   3                      }
+  38   2                      else
+  39   2                      {   
+  40   3                              DS18B20_DQ=1;
+  41   3                              _nop_();_nop_();
+  42   3                              DS18B20_DQ=0;
+  43   3                              _nop_();_nop_();
+  44   3                              DS18B20_DQ=1;
+  45   3                              DelayUs(8);//107us      
+  46   3                      }
+  47   2                      content>>=1;
+  48   2              }
+  49   1              EA=1;
+  50   1      }
+  51          
+  52          static unsigned int DS18B20_ReadOneByte(void)
+  53          {
+  54   1              uchar j=0;
+C51 COMPILER V9.00   DS18B20                                                               07/23/2014 19:54:01 PAGE 2   
+
+  55   1              uint result=0;
+  56   1              EA=0;
+  57   1              for(j=0;j<8;j++)
+  58   1              {
+  59   2                      DS18B20_DQ=1;
+  60   2                      _nop_();_nop_();
+  61   2                      DS18B20_DQ=0;
+  62   2                      result>>=1;// also can delay    
+  63   2                      DS18B20_DQ=1;
+  64   2                      _nop_();_nop_();_nop_();//>10us,<13us  //12us
+  65   2                      _nop_();_nop_();
+  66   2              
+  67   2                      if(DS18B20_DQ==1)
+  68   2                      {
+  69   3                              result=result|0x80;
+  70   3                      }
+  71   2                      else
+  72   2                      {
+  73   3                              result=result&0x7f;
+  74   3                      }
+  75   2                      DelayUs(8);
+  76   2              }
+  77   1              EA=1;
+  78   1              return result;
+  79   1      }
+  80           
+  81          static unsigned int DS18B20_get_tempareture()
+  82          {
+  83   1              uint TH1=0;
+  84   1              uint TH2=0;
+  85   1              uint temp=0;
+  86   1              
+  87   1              DS18B20_Initial();
+  88   1              DelayUs(5);
+  89   1              DS18B20_WriteOneByte(0xcc);
+  90   1              DelayUs(5);
+  91   1              DS18B20_WriteOneByte(0x44);//convert 
+  92   1      
+  93   1              DS18B20_Initial();
+  94   1              DelayUs(5);
+  95   1              DS18B20_WriteOneByte(0xcc);
+  96   1              DelayUs(5);
+  97   1              DS18B20_WriteOneByte(0xbe); 
+  98   1          DelayUs(5);
+  99   1              TH1=DS18B20_ReadOneByte();
+ 100   1              TH2=DS18B20_ReadOneByte();
+ 101   1              TH2<<=8;
+ 102   1              temp=TH2|TH1;
+ 103   1              
+ 104   1              return (temp);
+ 105   1      }
+ 106          
+ 107          
+ 108          void TemperatureUpdate()
+ 109          {
+ 110   1              unsigned int TempDat;
+ 111   1              unsigned int TempBehindDot;//小数点后的数据
+ 112   1      
+ 113   1              TempDat=DS18B20_get_tempareture();
+ 114   1              TempBehindDot=(TempDat&0x000f);
+ 115   1                                         //一般情况下，温度为正，这几句不用   
+ 116   1              if(TempDat&0x8000)                               //提高效率
+C51 COMPILER V9.00   DS18B20                                                               07/23/2014 19:54:01 PAGE 3   
+
+ 117   1              {
+ 118   2                      CurrentTemperature[0]='-';//Sign bit:'+'or'-'   
+ 119   2              }
+ 120   1              else
+ 121   1              {
+ 122   2                      CurrentTemperature[0]=' ';//' '=不显示  
+ 123   2              }       
+ 124   1              
+ 125   1              TempDat>>=4;
+ 126   1      
+ 127   1              CurrentTemperature[1]=TempDat/10;
+ 128   1              CurrentTemperature[2]=TempDat%10;
+ 129   1              CurrentTemperature[2]+=20;//为了显示小数点。
+ 130   1               
+ 131   1              TempBehindDot*=100;
+ 132   1              TempBehindDot>>=4;
+ 133   1      
+ 134   1              CurrentTemperature[3]=TempBehindDot/10;
+ 135   1              CurrentTemperature[4]=TempBehindDot%10;
+ 136   1      
+ 137   1      //      CurrentTemperature[5]=' ';
+ 138   1      //      CurrentTemperature[6]='.';
+ 139   1      //      CurrentTemperature[7]=12;
+ 140   1      
+ 141   1      //      strcpy (LedDisBuffer,CurrentTemperature);
+ 142   1      }
+ 143          
+ 144          
+ 145          
+ 146          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    358    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      9       9
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

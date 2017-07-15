@@ -1,0 +1,12 @@
+"..\..\text_6月14日\main.obj",
+"..\..\text_6月14日\seg.obj",
+"..\..\text_6月14日\timer.obj",
+"..\..\text_6月14日\Key.obj",
+"..\..\text_6月14日\DS1302.obj",
+"..\..\text_6月14日\ds18b20.obj",
+"..\..\text_6月14日\delay.obj",
+"..\..\text_6月14日\ExInterrupt.obj",
+"..\..\text_6月14日\PWM_LED.obj",
+"..\..\text_6月14日\buzzer.obj" 
+TO "..\..\text_6月14日\SevenSegLed" 
+PRINT(".\output\SevenSegLed.m51") RAMSIZE(256) 

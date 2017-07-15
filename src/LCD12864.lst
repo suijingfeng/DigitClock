@@ -1,0 +1,303 @@
+C51 COMPILER V8.02   LCD12864                                                              05/10/2013 16:00:18 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE LCD12864
+OBJECT MODULE PLACED IN .\output\LCD12864.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\LCD12864.c BROWSE DEBUG OBJECTEXTEND PRINT(.\LCD12864.lst) OBJECT(.\out
+                    -put\LCD12864.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include"MacroAndConst.h"
+   3          #include"delay.h"
+   4          #include"ds1302.h"
+   5          #include"at24c02.h"
+   6          #define LCD12864_DATA_PORT       P0
+   7          #define IMP_KWH1        6400
+   8          #define IMP_KWH2        800
+   9          
+  10          sbit dula=P2^6;
+  11          sbit wela=P2^7;
+  12          sbit LCD12864_EN=P3^4;
+  13          sbit LCD12864_RS=P3^2;
+  14          sbit LCD12864_WR=P3^3;
+  15          //sbit LCD12864_RD=P3^7;
+  16          unsigned char code SystemInit[]="初始化";
+  17          unsigned char code InventBy[]="Invented by:";
+  18          unsigned char code Name1[]="隋景峰";
+  19          unsigned char code Name2[]="张敏哲";
+  20          unsigned char code Name3[]="余书鹏";
+  21          unsigned char code Smart[]="智能电表";
+  22          unsigned char code Welcome[]="欢迎老师指导";
+  23          unsigned char code PowerConsume[]="耗电量:";
+  24          unsigned char code Gonglv[]="功率";
+  25          unsigned char code Uint[]="Wh";
+  26          unsigned char code Year[]="年";
+  27          unsigned char code Month[]="月";
+  28          unsigned char code Date[]="日";
+  29          
+  30          unsigned char PowerShowTable[7];
+  31          unsigned char PowerDt[6]={'0','0','3','0','.','0'};
+  32          
+  33          void LCD12864_WriteData(uchar content);
+  34          void LCD12864_WriteCommand(uchar content);
+  35          
+  36          void LCD12864_WriteCommand(uchar content)
+  37          {
+  38   1              ES=0;
+  39   1              ET0=0;
+  40   1              LCD12864_EN=0;
+  41   1              delayus(10);
+  42   1              LCD12864_WR=0;
+  43   1              delayus(10);
+  44   1              LCD12864_RS=0;
+  45   1              delayus(10);
+  46   1              LCD12864_DATA_PORT=content;
+  47   1              delayus(10);
+  48   1              LCD12864_EN=1;
+  49   1              delayus(10);
+  50   1              LCD12864_EN=0;
+  51   1              delayus(10);
+  52   1              ES=1;
+  53   1              ET0=1;  
+  54   1      }
+C51 COMPILER V8.02   LCD12864                                                              05/10/2013 16:00:18 PAGE 2   
+
+  55          
+  56          void LCD12864_WriteData(uchar content)
+  57          {
+  58   1              ES=0;
+  59   1              ET0=0;
+  60   1              LCD12864_EN=0;
+  61   1              delayus(10);
+  62   1              LCD12864_WR=0;
+  63   1              delayus(10);
+  64   1              LCD12864_RS=1;
+  65   1              delayus(10);
+  66   1              LCD12864_DATA_PORT=content;
+  67   1              delayus(10);
+  68   1              LCD12864_EN=1;
+  69   1              delayus(10);
+  70   1              LCD12864_EN=0;
+  71   1              ES=1;
+  72   1              ET0=1;
+  73   1      }
+  74          
+  75          void LCD12864_Initial()
+  76          {
+  77   1              unsigned char i=0;
+  78   1              dula=1;
+  79   1              P0=0x00;
+  80   1              dula=0;
+  81   1              
+  82   1              wela=1;
+  83   1              P0=0x00;
+  84   1              wela=0;
+  85   1      
+  86   1              LCD12864_WriteCommand(0x0c);
+  87   1              delay(100);
+  88   1              LCD12864_WriteCommand(0x30);
+  89   1              delay(10);
+  90   1              LCD12864_WriteCommand(0x06);
+  91   1              delay(10);
+  92   1              LCD12864_WriteCommand(0x01);
+  93   1              delay(10);
+  94   1              
+  95   1              LCD12864_WriteCommand(0x92);
+  96   1              for(i=0;SystemInit[i]!='\0';i++)
+  97   1              {
+  98   2                      LCD12864_WriteData(SystemInit[i]);
+  99   2              }
+ 100   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 101   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 102   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 103   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 104   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 105   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 106   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 107   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 108   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 109   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 110   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 111   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 112   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 113   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 114   1      
+ 115   1              LCD12864_WriteCommand(0x81);
+ 116   1              for(i=0;InventBy[i]!='\0';i++)
+C51 COMPILER V8.02   LCD12864                                                              05/10/2013 16:00:18 PAGE 3   
+
+ 117   1              {
+ 118   2                      LCD12864_WriteData(InventBy[i]);
+ 119   2              }
+ 120   1      
+ 121   1              LCD12864_WriteCommand(0x92);
+ 122   1              for(i=0;Name1[i]!='\0';i++)
+ 123   1              {
+ 124   2                      LCD12864_WriteData(Name1[i]);
+ 125   2              }
+ 126   1      
+ 127   1              LCD12864_WriteCommand(0x88+2);
+ 128   1              for(i=0;Name2[i]!='\0';i++)
+ 129   1              {
+ 130   2                      LCD12864_WriteData(Name2[i]);
+ 131   2              }
+ 132   1      
+ 133   1              LCD12864_WriteCommand(0x98+2);
+ 134   1              for(i=0;Name3[i]!='\0';i++)
+ 135   1              {
+ 136   2                      LCD12864_WriteData(Name3[i]);
+ 137   2              }
+ 138   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 139   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 140   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 141   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 142   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 143   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 144   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 145   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 146   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 147   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 148   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 149   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 150   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 151   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 152   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 153   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 154   1              
+ 155   1              LCD12864_WriteCommand(0x01);
+ 156   1              delay(10);
+ 157   1              
+ 158   1              LCD12864_WriteCommand(0x80+2);
+ 159   1              for(i=0;Smart[i]!='\0';i++)
+ 160   1              {
+ 161   2                      LCD12864_WriteData(Smart[i]);
+ 162   2              }
+ 163   1      
+ 164   1              LCD12864_WriteCommand(0x98+2);
+ 165   1              for(i=0;Welcome[i]!='\0';i++)
+ 166   1              {
+ 167   2                      LCD12864_WriteData(Welcome[i]);
+ 168   2              }
+ 169   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 170   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 171   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 172   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 173   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 174   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 175   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 176   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 177   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 178   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+C51 COMPILER V8.02   LCD12864                                                              05/10/2013 16:00:18 PAGE 4   
+
+ 179   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 180   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 181   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 182   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 183   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 184   1              delay(250);delay(250);delay(250);delay(250);delay(250);
+ 185   1      
+ 186   1              LCD12864_WriteCommand(0x01);
+ 187   1              delay(10);
+ 188   1      }
+ 189          // 显示所有要显示的信息；
+ 190          void LCD12864_Show()
+ 191          {
+ 192   1          unsigned int PowerCounter=0;
+ 193   1              unsigned char i=0;
+ 194   1              unsigned char temp;
+ 195   1              //show time
+ 196   1              LCD12864_WriteCommand(0x80);
+ 197   1              LCD12864_WriteData('2');
+ 198   1              LCD12864_WriteData('0');
+ 199   1              LCD12864_WriteData((CurrentTime.Year>>4)+'0');
+ 200   1              LCD12864_WriteData((CurrentTime.Year&0x0f)+'0');
+ 201   1              LCD12864_WriteData(Year[0]);
+ 202   1              LCD12864_WriteData(Year[1]);
+ 203   1              LCD12864_WriteData((CurrentTime.Month>>4)+'0');
+ 204   1              LCD12864_WriteData((CurrentTime.Month&0x0f)+'0');
+ 205   1              LCD12864_WriteData(Month[0]);
+ 206   1              LCD12864_WriteData(Month[1]);
+ 207   1              LCD12864_WriteData((CurrentTime.Date>>4)+'0');
+ 208   1              LCD12864_WriteData((CurrentTime.Date&0x0f)+'0');
+ 209   1          LCD12864_WriteData(Date[0]);
+ 210   1              LCD12864_WriteData(Date[1]);
+ 211   1      
+ 212   1              LCD12864_WriteCommand(0x90);
+ 213   1              LCD12864_WriteData((CurrentTime.Hour>>4)+'0');
+ 214   1              LCD12864_WriteData((CurrentTime.Hour&0x0f)+'0');
+ 215   1              LCD12864_WriteData(':');
+ 216   1              LCD12864_WriteData((CurrentTime.Minute>>4)+'0');
+ 217   1              LCD12864_WriteData((CurrentTime.Minute&0x0f)+'0');
+ 218   1              LCD12864_WriteData(':');
+ 219   1              LCD12864_WriteData((CurrentTime.Second>>4)+'0');
+ 220   1              LCD12864_WriteData((CurrentTime.Second&0x0f)+'0');
+ 221   1              
+ 222   1              //show the power of consume
+ 223   1      
+ 224   1              LCD12864_WriteCommand(0x88);
+ 225   1              for(i=0;PowerConsume[i]!='\0';i++)      
+ 226   1              {
+ 227   2                      LCD12864_WriteData(PowerConsume[i]);
+ 228   2              }
+ 229   1              //i=At24c02CurrentRead();
+ 230   1              //At24c02ByteWrite(20,99);
+ 231   1              //i=read_word(2);
+ 232   1              
+ 233   1              temp=read_word(4);
+ 234   1              PowerCounter=read_word(5);//6400 imp/kw.h 800imp/kwh
+ 235   1              PowerCounter<<=8;
+ 236   1              PowerCounter+=temp;
+ 237   1      
+ 238   1              PowerShowTable[0]=((PowerCounter*10>>3)/1000+'0');
+ 239   1              PowerShowTable[1]=((PowerCounter*10>>3)%1000/100+'0');
+ 240   1              PowerShowTable[2]=((PowerCounter*10>>3)%100/10+'0');
+C51 COMPILER V8.02   LCD12864                                                              05/10/2013 16:00:18 PAGE 5   
+
+ 241   1              PowerShowTable[3]=((PowerCounter*10>>3)%10+'0');
+ 242   1              PowerShowTable[4]='.';
+ 243   1              PowerShowTable[5]=((PowerCounter*100>>3)%10+'0');
+ 244   1              PowerShowTable[6]=((PowerCounter*1000>>3)%10+'0');
+ 245   1              
+ 246   1              for(i=0;i<7;i++)
+ 247   1              {
+ 248   2                      LCD12864_WriteData(PowerShowTable[i]);          
+ 249   2              }
+ 250   1              LCD12864_WriteData(Uint[0]);
+ 251   1              LCD12864_WriteData(Uint[1]);
+ 252   1      
+ 253   1      //功率部分：
+ 254   1              LCD12864_WriteCommand(0x98);
+ 255   1      //显示功率二字
+ 256   1              for(i=0;Gonglv[i]!='\0';i++)
+ 257   1              {
+ 258   2                      LCD12864_WriteData(Gonglv[i]);
+ 259   2              }
+ 260   1              LCD12864_WriteData(':');
+ 261   1      //显示数据
+ 262   1              for(i=0;i<6;i++)
+ 263   1              {
+ 264   2                      LCD12864_WriteData(PowerDt[i]);
+ 265   2              }
+ 266   1                      LCD12864_WriteData('W');
+ 267   1      }
+ 268                  
+ 269          
+ 270                  
+ 271          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2010    ----
+   CONSTANT SIZE    =     88    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     13       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

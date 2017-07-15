@@ -1,0 +1,257 @@
+BL51 BANKED LINKER/LOCATER V5.03                                                        02/18/2013  22:09:53  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V5.03, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE .\output\STARTUP.obj, .\output\main.obj, .\output\PWM_LED.obj, .\output\timer.obj TO .\output\P
+>> WM_LED PRINT (.\PWM_LED.m51) RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\output\STARTUP.obj (?C_STARTUP)
+  .\output\main.obj (MAIN)
+  .\output\PWM_LED.obj (PWM_LED)
+  .\output\timer.obj (TIMER)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  .\output\PWM_LED (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0004H     UNIT         ?DT?PWM_LED
+            IDATA   000CH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+                    0003H     0008H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+            CODE    000EH     008CH     UNIT         ?C_C51STARTUP
+            CODE    009AH     0048H     UNIT         ?PR?LEDISPLAY?PWM_LED
+            CODE    00E2H     0011H     UNIT         ?PR?TIMER0INIT?TIMER
+            CODE    00F3H     000DH     UNIT         ?C_INITSEG
+            CODE    0100H     000AH     UNIT         ?PR?MAIN?MAIN
+            CODE    010AH     0009H     UNIT         ?PR?TIMER0?TIMER
+
+
+
+OVERLAY MAP OF MODULE:   .\output\PWM_LED (?C_STARTUP)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN
+  +--> ?PR?TIMER0INIT?TIMER
+  +--> ?PR?LEDISPLAY?PWM_LED
+
+
+
+UNRESOLVED EXTERNAL SYMBOLS:
+   SYSTEMTIME1MS
+BL51 BANKED LINKER/LOCATER V5.03                                                      02/18/2013  22:09:53  PAGE 2
+
+
+
+
+
+SYMBOL TABLE OF MODULE:  .\output\PWM_LED (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:000EH         SEGMENT       ?C_C51STARTUP
+  I:000CH         SEGMENT       ?STACK
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:0011H         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0000H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:000EH         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         92
+  C:000EH         LINE#         99
+  C:0010H         LINE#         100
+  C:0011H         LINE#         101
+  C:0012H         LINE#         102
+  C:0014H         LINE#         151
+  C:0017H         LINE#         155
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  B:00A8H.7       PUBLIC        EA
+  D:00A8H         PUBLIC        IE
+  D:00B8H         PUBLIC        IP
+  C:0100H         PUBLIC        main
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          MAIN
+  C:0100H         LINE#         4
+  C:0100H         LINE#         5
+BL51 BANKED LINKER/LOCATER V5.03                                                      02/18/2013  22:09:53  PAGE 3
+
+
+  C:0100H         LINE#         6
+  C:0103H         LINE#         7
+  C:0105H         LINE#         8
+  C:0105H         LINE#         9
+  C:0105H         LINE#         10
+  C:0108H         LINE#         11
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+  -------         MODULE        PWM_LED
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  D:00A8H         PUBLIC        IE
+  D:00B8H         PUBLIC        IP
+  D:0008H         PUBLIC        LED_TimeCounter
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  D:0009H         PUBLIC        direction
+  D:000AH         PUBLIC        PWM_TimeCounter
+  D:00C8H         PUBLIC        T2CON
+  C:009AH         PUBLIC        LEDisplay
+  D:000BH         PUBLIC        TimeCounter
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          LEDISPLAY
+  C:009AH         LINE#         15
+  C:009AH         LINE#         16
+  C:009AH         LINE#         17
+  C:009DH         LINE#         18
+  C:009DH         LINE#         19
+  C:009FH         LINE#         21
+  C:00A8H         LINE#         22
+  C:00A8H         LINE#         23
+  C:00ABH         LINE#         25
+  C:00AFH         LINE#         26
+  C:00AFH         LINE#         27
+  C:00B1H         LINE#         28
+  C:00B7H         LINE#         29
+  C:00B7H         LINE#         30
+  C:00BAH         LINE#         31
+  C:00BDH         LINE#         32
+  C:00BDH         LINE#         33
+  C:00BFH         LINE#         36
+  C:00BFH         LINE#         37
+  C:00C1H         LINE#         38
+  C:00C8H         LINE#         39
+  C:00C8H         LINE#         40
+  C:00CBH         LINE#         41
+  C:00CEH         LINE#         42
+  C:00CEH         LINE#         43
+  C:00CEH         LINE#         44
+  C:00D1H         LINE#         45
+  C:00D1H         LINE#         47
+  C:00D8H         LINE#         48
+  C:00D8H         LINE#         49
+  C:00DBH         LINE#         50
+  C:00DDH         LINE#         51
+BL51 BANKED LINKER/LOCATER V5.03                                                      02/18/2013  22:09:53  PAGE 4
+
+
+  C:00DEH         LINE#         53
+  C:00DEH         LINE#         54
+  C:00E1H         LINE#         55
+  C:00E1H         LINE#         56
+  C:00E1H         LINE#         57
+  -------         ENDPROC       LEDISPLAY
+  -------         ENDMOD        PWM_LED
+
+  -------         MODULE        TIMER
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  D:00A8H         PUBLIC        IE
+  D:00B8H         PUBLIC        IP
+  C:010AH         PUBLIC        Timer0
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+  D:0088H         PUBLIC        TCON
+  B:00A8H.1       PUBLIC        ET0
+  C:00E2H         PUBLIC        Timer0Init
+  D:008CH         PUBLIC        TH0
+  D:008AH         PUBLIC        TL0
+  B:0088H.4       PUBLIC        TR0
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          TIMER0INIT
+  C:00E2H         LINE#         4
+  C:00E2H         LINE#         5
+  C:00E2H         LINE#         6
+  C:00E5H         LINE#         7
+  C:00E8H         LINE#         8
+  C:00EBH         LINE#         9
+  C:00EEH         LINE#         10
+  C:00F0H         LINE#         11
+  C:00F2H         LINE#         12
+  -------         ENDPROC       TIMER0INIT
+  -------         PROC          TIMER0
+  C:010AH         LINE#         14
+  C:010AH         LINE#         16
+  C:010DH         LINE#         17
+  C:0110H         LINE#         18
+  C:0112H         LINE#         20
+  -------         ENDPROC       TIMER0
+  -------         ENDMOD        TIMER
+
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  .\output\PWM_LED.obj (PWM_LED)
+
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  .\output\PWM_LED.obj (PWM_LED)
+    ADDRESS: 009BH
+
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  .\output\PWM_LED.obj (PWM_LED)
+BL51 BANKED LINKER/LOCATER V5.03                                                      02/18/2013  22:09:53  PAGE 5
+
+
+    ADDRESS: 009EH
+
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  .\output\timer.obj (TIMER)
+
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  .\output\timer.obj (TIMER)
+    ADDRESS: 0111H
+
+Program Size: data=13.0 xdata=0 code=267
+LINK/LOCATE RUN COMPLETE.  5 WARNING(S),  0 ERROR(S)

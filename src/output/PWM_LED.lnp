@@ -1,0 +1,6 @@
+".\output\STARTUP.obj",
+".\output\main.obj",
+".\output\PWM_LED.obj",
+".\output\timer.obj" 
+TO ".\output\PWM_LED" 
+PRINT(".\PWM_LED.m51") RAMSIZE(256) 

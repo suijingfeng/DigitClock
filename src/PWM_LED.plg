@@ -1,0 +1,199 @@
+<html>
+<body>
+<pre>
+<h1>µVision3 Build Log</h1>
+<h2>Project:</h2>
+D:\Documents\danpianjishiyan\text\PWM_LED.uv2
+Project File Date:  02/18/2013
+
+<h2>Output:</h2>
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling main.c...
+compiling PWM_LED.c...
+SRC\PWM_LED.C(15): error C202: 'SyStemTime1ms': undefined identifier
+SRC\PWM_LED.C(17): error C202: 'direction': undefined identifier
+SRC\PWM_LED.C(20): error C202: 'PWM_TimerCounter': undefined identifier
+SRC\PWM_LED.C(21): error C202: 'direction': undefined identifier
+SRC\PWM_LED.C(27): error C202: 'direction': undefined identifier
+compiling timer.c...
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling main.c...
+compiling PWM_LED.c...
+SRC\PWM_LED.C(16): error C202: 'SyStemTime1ms': undefined identifier
+SRC\PWM_LED.C(21): error C202: 'PWM_TimerCounter': undefined identifier
+compiling timer.c...
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling main.c...
+compiling PWM_LED.c...
+SRC\PWM_LED.C(21): error C202: 'PWM_TimerCounter': undefined identifier
+compiling timer.c...
+Target not created
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling main.c...
+compiling PWM_LED.c...
+compiling timer.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?LEDISPLAY?PWM_LED
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  LEDSTATECHANGE
+    MODULE:  main.obj (MAIN)
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  LEDPROCESS
+    MODULE:  main.obj (MAIN)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  LEDPROCESS
+    MODULE:  main.obj (MAIN)
+    ADDRESS: 00E3H
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  LEDSTATECHANGE
+    MODULE:  main.obj (MAIN)
+    ADDRESS: 00E6H
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009BH
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009EH
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+    ADDRESS: 00FAH
+Program Size: data=11.1 xdata=0 code=244
+"PWM_LED" - 0 Error(s), 10 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling main.c...
+SRC\MAIN.C(10): warning C206: 'LEDisplay': missing function-prototype
+compiling PWM_LED.c...
+compiling timer.c...
+linking...
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009BH
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009EH
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+    ADDRESS: 00F7H
+Program Size: data=11.1 xdata=0 code=241
+"PWM_LED" - 0 Error(s), 6 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling main.c...
+SRC\MAIN.C(10): warning C206: 'LEDisplay': missing function-prototype
+compiling PWM_LED.c...
+compiling timer.c...
+linking...
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+Program Size: data=11.4 xdata=0 code=247
+Target not created
+Build target 'Target 1'
+compiling main.c...
+SRC\MAIN.C(10): warning C206: 'LEDisplay': missing function-prototype
+compiling PWM_LED.c...
+compiling timer.c...
+linking...
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009BH
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009EH
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+    ADDRESS: 00F7H
+Program Size: data=11.1 xdata=0 code=241
+"PWM_LED" - 0 Error(s), 6 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling main.c...
+SRC\MAIN.C(10): warning C206: 'LEDisplay': missing function-prototype
+compiling PWM_LED.c...
+compiling timer.c...
+linking...
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009BH
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009EH
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+    ADDRESS: 00F7H
+Program Size: data=11.1 xdata=0 code=241
+"PWM_LED" - 0 Error(s), 6 Warning(s).
+Build target 'Target 1'
+assembling STARTUP.A51...
+compiling main.c...
+SRC\MAIN.C(10): warning C206: 'LEDisplay': missing function-prototype
+compiling PWM_LED.c...
+compiling timer.c...
+linking...
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009BH
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  PWM_LED.obj (PWM_LED)
+    ADDRESS: 009EH
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  SYSTEMTIME1MS
+    MODULE:  timer.obj (TIMER)
+    ADDRESS: 00F7H
+Program Size: data=11.1 xdata=0 code=241
+"PWM_LED" - 0 Error(s), 6 Warning(s).

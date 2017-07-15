@@ -1,0 +1,153 @@
+C51 COMPILER V9.00   TIMER                                                                 07/23/2014 19:54:00 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE TIMER
+OBJECT MODULE PLACED IN .\output\timer.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\timer.c BROWSE DEBUG OBJECTEXTEND PRINT(.\output\timer.lst) OBJECT(.\ou
+                    -tput\timer.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include"TIMER.h"
+   3          
+   4          sfr T2MOD=0xC9;
+   5          /*  bit:SJF             7        6        5        4    3    2    1        0     */
+   6          /*      T2CON=0C8h:     TF2     EXF2 RCLK TCLK EXEN2 TR2 C/T2 CP/RL2 */
+   7          /*  T2MOD=0C9H: -        -        -        -    -        -       T2OE  DCEN   */
+   8          /*      P1.0=T2:外部计数输入----P1^1=T2EX:捕捉重载触发信号----*/
+   9          
+  10          static unsigned char T0KeyScanTime2ms=0;
+  11          static unsigned char T0SegJumpTime2ms=0;
+  12          static unsigned char T0IrScanTime2ms=0;
+  13          static unsigned int T0Ds18b20Time2ms=0;
+  14          static unsigned int SegFlashFlag=0;
+  15          
+  16          unsigned char T1_250us=0;
+  17          
+  18          bit SegScanFlag=0;
+  19          bit SegJump1HzFlag=0;//0.5s时标
+  20          bit     SegFlash1s=0;
+  21          
+  22          bit KeyScanFlag=0;
+  23          bit Ds1302UpdateFlag=0;
+  24          bit Ds18b20UpdateFlag=0;
+  25          bit IrScanFlag=0;
+  26          
+  27          bit Flag_4KHz=0;
+  28          
+  29          bit Led_PWM_Flag=0;
+  30          
+  31          
+  32          void Timer0Init()
+  33          {
+  34   1              TMOD&=0xf0;
+  35   1              TMOD|=0x01;
+  36   1              TH0=(65536-2000)/256;
+  37   1              TL0=(65536-2000)%256;
+  38   1              TR0=1;
+  39   1              ET0=1;
+  40   1      }
+  41          
+  42          void Timer1Init()
+  43          {
+  44   1              TMOD&=0x0f;   
+  45   1              TMOD|=0x10;   
+  46   1              TH1=(65536-250)/256;
+  47   1              TL1=(65536-250)%256;
+  48   1          TR1=1;
+  49   1              ET1=1;  
+  50   1      }
+  51          
+  52          void Timer2Init()
+  53          {
+  54   1              RCAP2H=(65536-200)/256;// 200us
+C51 COMPILER V9.00   TIMER                                                                 07/23/2014 19:54:00 PAGE 2   
+
+  55   1              RCAP2L=(65536-200)%256;// 0.2ms
+  56   1              
+  57   1              TH2=RCAP2H;
+  58   1              TL2=RCAP2L;
+  59   1      
+  60   1              EXEN2=0;//不允许外部P1^1(=T2EX）位;
+  61   1              C_T2=0;//counter
+  62   1              CP_RL2=0;//auto reload
+  63   1              T2MOD=0;
+  64   1              ET2=1;//Enable Timer2 interrupt;        
+  65   1              TR2=1;//Timer2 start//stop 
+  66   1      }
+  67          
+  68          void Timer0Interrupt(void) interrupt 1
+  69          {
+  70   1              TH0=(65536-2000)/256;
+  71   1              TL0=(65536-2000)%256;
+  72   1      
+  73   1              SegScanFlag=1;
+  74   1      
+  75   1              if(++T0KeyScanTime2ms==10);//for key scan
+  76   1              {
+  77   2                      KeyScanFlag=1;
+  78   2                      T0KeyScanTime2ms=0;
+  79   2              }
+  80   1              
+  81   1              if(++T0IrScanTime2ms==25)
+  82   1              {
+  83   2                      T0IrScanTime2ms=0;
+  84   2                      IrScanFlag=1;
+  85   2              }       
+  86   1      
+  87   1              if(++T0SegJumpTime2ms==250)
+  88   1              {
+  89   2                      SegJump1HzFlag=1;
+  90   2                      Ds1302UpdateFlag=1;
+  91   2                      T0SegJumpTime2ms=0;
+  92   2              }
+  93   1              if(++SegFlashFlag==1500)
+  94   1              {
+  95   2                      SegFlashFlag=0;
+  96   2                      SegFlash1s=1;   
+  97   2              }       
+  98   1      
+  99   1              if(++T0Ds18b20Time2ms==1000)
+ 100   1              {
+ 101   2                      T0Ds18b20Time2ms=0;
+ 102   2                      Ds18b20UpdateFlag=1;    
+ 103   2              }               
+ 104   1      }
+ 105          
+ 106          void Timer1Interrupt(void) interrupt 3
+ 107          {
+ 108   1              TH1=(65536-250)/256;;
+ 109   1              TL1=(65536-250)%256; //50ms
+ 110   1                      
+ 111   1              if(++T1_250us>=250)//50000us=50ms
+ 112   1              {
+ 113   2                      T1_250us=0;
+ 114   2              }
+ 115   1      }
+ 116          
+C51 COMPILER V9.00   TIMER                                                                 07/23/2014 19:54:00 PAGE 3   
+
+ 117          void Timer2Interrupt(void) interrupt 5
+ 118          {
+ 119   1              TF2=0;
+ 120   1              Led_PWM_Flag=1;                                         
+ 121   1      }
+ 122          
+ 123          
+ 124          
+ 125          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    203    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      9    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

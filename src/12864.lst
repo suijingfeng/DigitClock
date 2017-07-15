@@ -1,0 +1,114 @@
+C51 COMPILER V8.02   12864                                                                 03/15/2013 23:35:48 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE 12864
+OBJECT MODULE PLACED IN .\12864.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ..\12846\12864.c BROWSE DEBUG OBJECTEXTEND PRINT(.\12864.lst) OBJECT(.\1286
+                    -4.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include"macroandconst.h"
+*** WARNING C318 IN LINE 2 OF ..\12846\12864.c: can't open file 'macroandconst.h'
+   3          
+   4          sbit dula=P2^6;
+   5          sbit wela=P2^7;
+   6          uchar code table[]="耗电量：";
+*** ERROR C129 IN LINE 6 OF ..\12846\12864.C: missing ';' before 'code'
+   7          uchar code table1[]="功率：";
+   8          uchar code table2[]="隋景峰";
+   9          uchar code table3[]="2012.7.19";
+  10          sbit  LCD_RS=P3^5;
+  11          sbit  LCD_EN=P3^4;
+  12          sbit  LCD_RW=P3^6;
+  13          sbit  LCD_PSB=P3^7;//H 
+  14          void delay(uchar x)
+  15          {
+  16                  uchar i,j;
+  17                  for(i=x;i>0;i--)
+  18                  for(j=110;j>0;j--)
+  19                  ;
+  20          }
+  21          
+  22          void delayus(uint us)
+  23          {
+  24                  while(us--);
+  25          }
+  26          
+  27          
+  28          void write_commond(uchar commond)
+  29          {
+  30                  LCD_RS=0;
+  31                  LCD_RW=0;
+  32                  LCD_EN=0;
+  33                  P0=commond;
+  34                  LCD_EN=1;
+  35                  delayus(15);
+  36                  LCD_EN=0;
+  37          }
+  38            
+  39          void write_data(uchar dat)
+  40          {
+  41                  LCD_RW=0;
+  42                  LCD_RS=1;
+  43                  LCD_EN=0;
+  44                  P0=dat;
+  45                  LCD_EN=1;
+  46                  delayus(15);
+  47                  LCD_EN=0;
+  48          }
+  49          
+  50          void main()
+  51          {
+  52                  uchar i=0;
+C51 COMPILER V8.02   12864                                                                 03/15/2013 23:35:48 PAGE 2   
+
+  53                  dula=0;
+  54                  wela=0;
+  55                  LCD_EN=0;
+  56                  LCD_RW=0;
+  57                  write_commond(0x30); //DL=1,8bits,RE=0,base 
+  58                  write_commond(0x0c);
+  59                  write_commond(0x06);
+  60                  write_commond(0x01);// need some time 
+  61                  delay(10); // so i delay
+  62                  write_commond(0x80);
+  63          
+  64                  while(table[i]!='\0')   
+  65                  {
+  66                          write_data(table[i]);
+  67                          i++;
+  68                  }
+  69           
+  70                  write_commond(0x90);
+  71                      i=0;
+  72                          while(table1[i]!='\0')
+  73                          {
+  74                                  write_data(table1[i]);
+  75                                  i++;
+  76                          } 
+  77                          
+  78                      write_commond(0x88);
+  79                      i=0;
+  80                      while(table2[i]!='\0')
+  81                          {
+  82                                  write_data(table2[i]);
+  83                                  i++;
+  84                          } 
+  85                       write_commond(0x98);
+  86                    
+  87                       i=0;
+  88                  while(table3[i]!='\0')
+  89                  {
+  90                          write_data(table3[i]);
+  91                          i++;
+  92                  } 
+  93                  while(1)  ;
+  94          }
+  95          
+  96          
+  97           
+  98          
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  1 ERROR(S)

@@ -1,0 +1,157 @@
+C51 COMPILER V9.00   MAIN                                                                  07/23/2014 19:54:00 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\output\main.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\main.c BROWSE DEBUG OBJECTEXTEND PRINT(.\output\main.lst) OBJECT(.\outp
+                    -ut\main.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include<intrins.h>
+   3          #include"MacroAndConst.h"
+   4          #include"Timer.h"
+   5          #include"ds1302.h"
+   6          #include"Seg.h"
+   7          #include"PWMLED.h"
+   8          #include"key.h"
+   9          #include"buzzer.h"
+  10          #include"ds18b20.h"
+  11          #include"delay.h"
+  12          #include"ExInterrupt.h"
+  13          //还想实现的秒表,设定闹钟,数码管的飞入显示,温度报警,农历
+  14          
+  15          sfr AUXR=0x8E;
+  16          
+  17          void main()
+  18          {       
+  19   1              Ex0IptInit();
+  20   1              Timer0Init();
+  21   1              Timer1Init();
+  22   1              Timer2Init();
+  23   1              /////////
+  24   1              AUXR=0x01;
+  25   1              /////////
+  26   1              KeyInit();
+  27   1              
+  28   1              DS1302_ClockInit();
+  29   1              EA=1;
+  30   1      
+  31   1              while(1)
+  32   1              {       
+  33   2                      KeyMainLoop();
+  34   2                      IrKeyMainLoop();
+  35   2                      
+  36   2                      if(SetModeFlag) 
+  37   2                      {
+  38   3                              //SegFlash();
+  39   3                      }
+  40   2      
+  41   2                      if(BuzzerFlag)
+  42   2                      {
+  43   3                              BuzzerOn();
+  44   3                      }
+  45   2                      else
+  46   2                      {
+  47   3                              BuzzerOff();    
+  48   3                      }
+  49   2                
+  50   2                  
+  51   2                      if(Led_PWM_Flag)
+  52   2                      {
+  53   3                              Led_PWM_Flag=0;
+  54   3                              LEDisplay();
+C51 COMPILER V9.00   MAIN                                                                  07/23/2014 19:54:00 PAGE 2   
+
+  55   3                      }
+  56   2      
+  57   2                      switch(IrKeyVal.SegPicture)//IrLowCmd=IrKeyValue
+  58   2                      {
+  59   3                              case 0://DS1302时钟0.5秒更新一次。显示时、分、秒
+  60   3                              {
+  61   4                                      LedDisplay(TimeBuf1);//原来是：LedDisplay(LedDisBuffer);
+  62   4                                      
+  63   4                                      if(Ds1302UpdateFlag&(~SetTimeFlag))
+  64   4                                      {
+  65   5                                              Ds1302UpdateFlag=0;
+  66   5                                              DS1302_ClockUpdata_SMH(TimeBuf1);//原来是：DS1302_ClockUpdata_SMH(LedDisBuffer);        
+  67   5                                      }                       
+  68   4                              }break;
+  69   3      
+  70   3                              case 1://年、月、日     
+  71   3                              {                                                          
+  72   4                                      LedDisplay(TimeBuf2);//LedDisplay(LedDisBuffer);
+  73   4                                      if(Ds1302UpdateFlag&(~SetTimeFlag)) //DS1302时钟0.5秒更新一次。
+  74   4                                      {
+  75   5                                              Ds1302UpdateFlag=0;
+  76   5                                              DS1302_ClockUpdata_DMY(TimeBuf2);//原来是：DS1302_ClockUpdata_DMY(LedDisBuffer);
+  77   5                                      }
+  78   4                                      
+  79   4                              }break;
+  80   3      
+  81   3                              case 2://week
+  82   3                              {
+  83   4                                      LedDisplay(TimeBuf3);
+  84   4                                      if(Ds1302UpdateFlag&(~SetTimeFlag)) //DS1302时钟0.5秒更新一次。
+  85   4                                      {
+  86   5                                              Ds1302UpdateFlag=0;
+  87   5                                              DS1302_ClockUpdata_WEEK(TimeBuf3);
+  88   5                                      }       
+  89   4                              }break;
+  90   3                              
+  91   3                              case 3://temperature
+  92   3                              {
+  93   4                                       LedDisplay(CurrentTemperature);
+  94   4                                       if(Ds18b20UpdateFlag&(~SetTemperatureFlag))
+  95   4                                       {
+  96   5                                              Ds18b20UpdateFlag=0;
+  97   5                                              TemperatureUpdate();
+  98   5                                       }      
+  99   4                              }break;
+ 100   3      
+ 101   3                              case 4:
+ 102   3                              {
+ 103   4                                      //DS1302_ClockBurstRead();
+ 104   4                              } break;
+ 105   3      
+ 106   3                              case 5:
+ 107   3                              {
+ 108   4                      /*              LedDisplay(LedDisBuffer);
+ 109   4                                      LedDisBuffer[0]=IrKeyVal.IrCode[0]>>4;
+ 110   4                                      LedDisBuffer[1]=IrKeyVal.IrCode[0]&0x0f;
+ 111   4      
+ 112   4                                      LedDisBuffer[2]=IrKeyVal.IrCode[1]>>4;
+ 113   4                                      LedDisBuffer[3]=IrKeyVal.IrCode[1]&0x0f;
+ 114   4      
+ 115   4                                      LedDisBuffer[4]=IrKeyVal.IrCode[2]>>4;
+ 116   4                                      LedDisBuffer[5]=IrKeyVal.IrCode[2]&0x0f;
+C51 COMPILER V9.00   MAIN                                                                  07/23/2014 19:54:00 PAGE 3   
+
+ 117   4      
+ 118   4                                      LedDisBuffer[6]=IrKeyVal.IrCode[3]>>4;  
+ 119   4                                      LedDisBuffer[7]=IrKeyVal.IrCode[3]&0x0f;  */
+ 120   4                              }break;
+ 121   3                              default:break;
+ 122   3                      }                        
+ 123   2              }  
+ 124   1      }
+ 125          
+ 126          
+ 127          
+ 128                  
+ 129          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    173    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

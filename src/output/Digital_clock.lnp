@@ -1,0 +1,5 @@
+"..\text\output\STARTUP.obj",
+"..\text\output\main.obj",
+"..\text\output\timer.obj" 
+TO "..\text\output\Digital_clock" 
+PRINT("..\Digital_clock.m51") RAMSIZE(256) 

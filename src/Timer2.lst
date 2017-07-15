@@ -1,0 +1,107 @@
+C51 COMPILER V8.02   TIMER2                                                                05/10/2013 16:00:17 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE TIMER2
+OBJECT MODULE PLACED IN .\output\Timer2.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\Timer2.c BROWSE DEBUG OBJECTEXTEND PRINT(.\Timer2.lst) OBJECT(.\output\
+                    -Timer2.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include<intrins.h>
+   3          #include"MacroAndConst.h"
+   4          //#include"SEG.h"
+   5          #include"lcd12864.h"
+   6          #include"AT24c02.h"
+   7          #include"ds1302.h"
+   8          #include"buzzer.h"
+   9          #include"delay.h"
+  10          sfr T2MOD=0xC9;
+  11          /*  bit:SJF             7        6        5        4    3    2    1        0            */
+  12          /*      T2CON=0C8h:     TF2     EXF2 RCLK TCLK EXEN2 TR2 C_T2 CP_RL2    */
+  13          /*  T2MOD=0C9H: -        -        -        -    -        -       T2OE  DCEN      */
+  14          /*      P1.0=T2:外部计数输入---P1^1=T2EX:捕捉重载触发信号----*/
+  15          unsigned int temp=0;
+  16          unsigned int PowerNumber=0;
+  17          unsigned int EveragePower=0;
+  18          unsigned char dt;
+  19          
+  20          static unsigned char second_start=0;//用于计算功率
+  21          static unsigned char minute_start=0;//用于计算功率
+  22          static unsigned char second_end=0;//用于计算功率
+  23          static unsigned char minute_end=0;//用于计算功率
+  24          
+  25          
+  26          void Timer2Init()
+  27          {
+  28   1              RCAP2H=0x00;
+  29   1              RCAP2L=0x00;
+  30   1              
+  31   1              TH2=RCAP2H;
+  32   1              TL2=RCAP2L;
+  33   1      
+  34   1              EXEN2=1;//外部P1^1=T2EX允许位;
+  35   1              C_T2=1;//内部计时器;
+  36   1              CP_RL2=1;//捕捉;
+  37   1              T2MOD=0;
+  38   1              TR2=0;//开始计数;//stop
+  39   1              ET2=1;//Enable Timer2 bit;      
+  40   1      }
+  41          
+  42          void Timer2() interrupt 5
+  43          {
+  44   1              if(TF2==1)
+  45   1              {
+  46   2                      //Timer2FlowOut++;
+  47   2                      TF2=0;
+  48   2              }
+  49   1              if(EXF2==1)
+  50   1              {
+  51   2                      EXF2=0;
+  52   2                      temp=read_word(5);
+  53   2                      PowerNumber=(temp<<8);
+  54   2                      temp=read_word(4);
+C51 COMPILER V8.02   TIMER2                                                                05/10/2013 16:00:17 PAGE 2   
+
+  55   2                      PowerNumber=PowerNumber+temp;
+  56   2                      PowerNumber++;
+  57   2              
+  58   2                      At24c02ByteWrite(4,(unsigned char)(PowerNumber&0x00ff));
+  59   2                      At24c02ByteWrite(5,(unsigned char)(PowerNumber>>8));
+  60   2      
+  61   2                      //记录脉冲间隔时间dt
+  62   2                      second_start=second_end;
+  63   2                      minute_start=minute_end;
+  64   2      
+  65   2                      second_end=(CurrentTime.Second>>4)*10+(CurrentTime.Second&0x0f);
+  66   2                      minute_end=(CurrentTime.Minute>>4)*10+(CurrentTime.Minute&0x0f);
+  67   2                  //更新功率信息
+  68   2                      if(minute_end>=minute_start)
+  69   2                      {
+  70   3                              dt=(minute_end-minute_start)*60+second_end-second_start;
+  71   3                              //EveragePower=(1/800)/(dt/3600)*1000w;
+  72   3                              EveragePower=2250/dt;
+  73   3                              PowerDt[0]=EveragePower/1000+'0';
+  74   3                              PowerDt[1]=EveragePower%1000/100+'0';
+  75   3                              PowerDt[2]=EveragePower%100/10+'0';
+  76   3                              PowerDt[3]=EveragePower%10+'0';
+  77   3                              PowerDt[4]='.';
+  78   3                              PowerDt[5]=(22500/dt-22500)%10+'0';
+  79   3                      }
+  80   2              }
+  81   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    352    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

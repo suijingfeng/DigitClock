@@ -1,0 +1,51 @@
+C51 COMPILER V8.02   BUZZER                                                                05/10/2013 16:00:17 PAGE 1   
+
+
+C51 COMPILER V8.02, COMPILATION OF MODULE BUZZER
+OBJECT MODULE PLACED IN .\output\buzzer.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE src\buzzer.c BROWSE DEBUG OBJECTEXTEND PRINT(.\buzzer.lst) OBJECT(.\output\
+                    -buzzer.obj)
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #include"ds1302.h"
+   3          
+   4          sbit buzzer=P2^3; 
+   5          /*
+   6          void BuzzerOn()
+   7          {
+   8                  buzzer=1;
+   9          }
+  10          
+  11          void BuzzerOff()
+  12          {
+  13                  buzzer=0;
+  14          }
+  15          */
+  16          /*  //整点报时，还没完成//
+  17          void BellOnTime()
+  18          {
+  19                  if((CurrentTime.Minute==0x00)&&(CurrentTime.Second==0x00)
+  20                  &&((10*LedDisBuffer[0]+LedDisBuffer[1])<=20)&&((10*LedDisBuffer[0]+LedDisBuffer[1])>=8))
+  21                  {
+  22                          BuzzerOn();
+  23                  }
+  24                  else
+  25                          BuzzerOff();
+  26          }
+  27          */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

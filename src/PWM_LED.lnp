@@ -1,0 +1,6 @@
+"STARTUP.obj",
+"main.obj",
+"PWM_LED.obj",
+"timer.obj" 
+TO "PWM_LED" 
+RAMSIZE(256) 
